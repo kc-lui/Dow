@@ -49,6 +49,8 @@ Yahoo serves `open = high = low = close` bars before 1962-07-02 (`^GSPC`) and 19
 They are stored but flagged (`flat_bar`), and `data.analysis_start` in `configs/dow.yaml` makes
 `load_klines` clip to the first real-OHLC date. Override with `dow --ignore-analysis-start ...`.
 
+Decision: a few flat bars remain after the analysis start (`^GSPC` 38, `^IXIC` 2, `IYT` 8). They stay as `flat_bar` warnings, because Dow logic uses closes only and they do not distort swings.
+
 ## Migrations and legacy tables
 
 `scripts/migrate_p2_review.py` (admin account, idempotent) moved existing databases to yearly

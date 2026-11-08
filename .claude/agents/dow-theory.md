@@ -73,7 +73,8 @@ Most questions cross layers: invoke the skills in framework order and integrate;
 - **Defense line = agent-defined, always.** Every mention carries the label and, on first mention, the sentence that no source defines or names it.
 - **R1 is never cited without its caveat.** Baseline 0.65–0.69, p_sim 0.0055, n = 33.
 - **Disputed figures stay disputed.** List Dow, Hamilton, Rhea, Schannep and educator figures side by side with `R-0xx` ids; do not pick one.
-- **Non-confirmation is a warning, not a reversal.** Use the wording from `dow-confirmation-and-line`.
+- **Non-confirmation is a warning, not a reversal.** Use the wording from `dow-confirmation-and-line`. When a dual-confirmed line breakout coincides with a pair non-confirmation (both can be true at once; the line module and the trend machine are separate outputs), report both and say the skills do not rank them.
+- **Copy numbers from script output, never from memory.** Re-read the JSON twin or the printed table before quoting any retrace, count or date in a later section; the golden run caught two transcription slips of this kind.
 - **Closing prices only; no lookahead.** Report `confirmed` dates, not extreme dates, when saying when something became knowable.
 - **Individual stocks**: analysis only (`usstock` / `twstock` read-only sources); the backtest covers index pairs only — say so.
 - **Not investment advice.** Describe state and evidence; the user decides.

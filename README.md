@@ -12,7 +12,7 @@ Dow Theory as a Claude Code subagent (`dow-theory`) and six `dow-*` skills. The 
 | `dow-confirmation-and-line` | `.claude/skills/dow-confirmation-and-line/` | 98 | 96 | 97 | 2 | passed |
 | `dow-levels-and-chart` | `.claude/skills/dow-levels-and-chart/` | 98 | 96 | 97 | 2 | passed |
 | `dow-rule-backtest` | `.claude/skills/dow-rule-backtest/` | 98 | 95 | 96 | 2 | passed |
-| `dow-theory` agent | `.claude/agents/dow-theory.md` | n/a | n/a | n/a | n/a | golden run: pending |
+| `dow-theory` agent | `.claude/agents/dow-theory.md` | n/a | n/a | n/a | n/a | golden run 6/6 PASS (`analysis/agent_verification_sample.md`), installed byte-identical to `~/.claude` |
 
 Each skill must pass a dual-axis review with a gate of 90. Scripts-backed skills weight the axes 0.5 and 0.5. The knowledge-only skill weights them 0.35 and 0.65 (see `docs/team_design.md`, section 3). Sources: the final scores are in `reports/skill_review_dow-*_2026-11-08_*.json` and the LLM scores in `reports/llm_review_dow-*.json`.
 

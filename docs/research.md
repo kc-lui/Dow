@@ -309,6 +309,7 @@ Two execution facts are recorded here by the lead because no repo file holds the
 - **Stale registry text.** Section 7 says the `^DJI` and `^DJT` series have no volume (`research/canonical_rules.md`, section 7). The header says 43 notes; the folder holds 42.
 - **Agent description.** `.claude/agents/dow-theory.md` says each of the six skills has passed review. `dow-rule-backtest` has not.
 - **Unverified code-review items.** Items M1 to M7, L1 to L7 and L8 in `reports/code_review_p2.md` are not confirmed closed.
+- **Golden-run slips (not blocking).** The grader found two numeric slips in otherwise passing answers: Q1 quoted the 2025-04-08 retrace as 0.95 where the JSON gives 0.585, and Q6 counted 10 DEFENSE_BREAK warnings where the run gives 9 (`analysis/agent_verification_sample.md`, Issues). It also noted that the SP_IYT R1 row (0.80, n 20, p_sim 0.1314) exists only in the run JSON, not in `reports/rule_R1.md`, and that the skills give no guidance when a dual-confirmed line breakout coincides with a pair non-confirmation (2026-10-27 case).
 - **Chart legibility.** Overlapping zone labels when zones are adjacent, stacked signal labels around 2020, and a short defense-line segment when recently set (`.claude/skills/dow-levels-and-chart/SKILL.md`, Limitation 5).
 
 ## 9. Install and reproduction steps

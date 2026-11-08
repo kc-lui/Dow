@@ -1,6 +1,6 @@
 # Canonical Dow Theory rules (literature synthesis)
 
-Built from the 43 notes in `research/sources/` as read on 2026-11-08. This version reflects the first-hand replacements of the hamilton, nelson, rhea, dow-editorials, edwards-magee and kirkpatrick-dahlquist notes, and the new russell-history-of-the-dow-theory note.
+Built from the 42 source notes in `research/sources/` (plus `research/academic-search-log.md`, moved out of the folder after synthesis) as read on 2026-11-08. This version reflects the first-hand replacements of the hamilton, nelson, rhea, dow-editorials, edwards-magee and kirkpatrick-dahlquist notes, and the new russell-history-of-the-dow-theory note.
 
 ## 0. Method and legend
 
@@ -392,7 +392,7 @@ For disputed rows, "agreeing" lists grouped positions (P1, P2, ...) and "disagre
 - **Line geometry.** Total range or plus/minus about the mean. Which base price. Sessions versus calendar weeks. Breakout filter size, if any (R-028).
 - **Trendline details.** Fit method, tolerance, linear versus log, touches, break filter (R-050 to R-053).
 - **S/R zones.** Zone width and touch count have no source (R-047).
-- **Volume.** The ^DJI and ^DJT series carry no volume. No source defines the volume metric. Hamilton and educators disagree about reactions (R-038).
+- **Volume.** The ^DJI and ^DJT series in `dow.mkt_klines` carry positive volume on every bar since 1992 (with level breaks in 2000 and 2016/17, see reports/backtest_audit.md); no source defines the volume metric to use. Hamilton and educators disagree about reactions (R-038).
 - **Secondary classification.** Rhea had trouble deciding what counted (thedowtheory-lines-special-issue:Q15).
 - **Index composition.** Constituents have changed since the early 1900s (rich01 Q17; stockfeel Q19), which limits historical backtests.
 - **Contract fixes needed.**

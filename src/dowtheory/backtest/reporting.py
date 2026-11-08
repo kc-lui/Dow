@@ -14,7 +14,7 @@ import numpy as np
 from dowtheory.backtest import protocol as proto
 from dowtheory.backtest.protocol import BGK_CAVEAT, FAMILY
 from dowtheory.backtest.results import RuleResult
-from dowtheory.backtest.runner import LABEL_PAIR, BacktestRun, PairRun
+from dowtheory.backtest.runner import LABEL_PAIR, BacktestRun, PairRun, r1_caveat_for
 from dowtheory.config import project_root
 
 TITLES = {
@@ -148,9 +148,7 @@ def rule_report(run: BacktestRun, pr: PairRun, rule: str, protocol_text: str) ->
     else:
         lines.append(f"- No label: `{pr.pair}` is a robustness pair (labels come from `DJ` only).")
     if rule == "R1":
-        sim = o.details.get("p_sim")
-        lines += ["", "### Mandatory caveat (R11 F1)", "",
-                  proto.R1_CAVEAT.format(p_sim="n/a" if sim is None else f"{sim:.4f}")]
+        lines += ["", "### Mandatory caveat (R11 F1)", "", r1_caveat_for(pr)]
     if rule in proto.EXPLORATORY_VARIANTS:
         which = ("every row of this report" if rule == "R3" else
                  "the `single` and `conf_minus_single` rows")
@@ -251,8 +249,7 @@ def status_table(run: BacktestRun) -> str:
         notes.append(f"refute_bound={f(lab['bound'], 4)} vs null {f(p.null_value, 4)}")
         notes.append(f"lit ids {run.literature_ids.get(r) or 'none'}")
         if r == "R1":
-            sim = o.details.get("p_sim")
-            notes.append(proto.R1_CAVEAT.format(p_sim="n/a" if sim is None else f"{sim:.4f}"))
+            notes.append(r1_caveat_for(pr))
         notes += pr.flags.get(r, [])
         cons = _consistency_note(run, r)
         if cons:

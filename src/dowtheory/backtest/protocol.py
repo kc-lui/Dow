@@ -173,13 +173,44 @@ def printed_caveats(table_text: str) -> dict[str, list[str]]:
     return out
 
 
-R1_CAVEAT = (
+REFERENCE_SPEC = "pct0.03/0.08f15"
+REFERENCE_START = dt.date(1992, 1, 2)
+_R1_HEAD = (
     "Mandatory caveat for any citation of R1 `data-confirmed` (R11 audit F1): the 0.5 null is "
-    "not a random-walk baseline. A drift-matched random walk run through the same machinery "
-    "gives p_extend of about 0.65 to 0.69 (auditor: iid 0.654, zero drift 0.633, block bootstrap "
-    "0.695, with P(>= 0.8788) of about 0.0005, 0.0005 and 0.0085). The harness random-walk p is "
-    "p_sim = {p_sim}. Cite the baseline 0.65 to 0.69, p_sim and n = 33; never p_holm alone."
+    "not a random-walk baseline."
 )
+
+
+def is_reference_run(pair: str, first: dt.date, last: dt.date, spec: str) -> bool:
+    """True for the DJ 1992 to ``period_end`` primary-spec run that R11 audited."""
+    return (pair, first, last, spec) == ("DJ", REFERENCE_START, PERIOD_END, REFERENCE_SPEC)
+
+
+def r1_caveat(
+    n_obs: int, pair: str, p_sim: float | None, sim_mean: float | None = None,
+    *, reference: bool = False,
+) -> str:
+    """R1 citation caveat built from this run's own numbers.
+
+    The auditor's baseline figures are quoted only for the reference run; any other run says
+    that the audit baseline does not apply.
+    """
+    sim = "n/a" if p_sim is None else f"{p_sim:.4f}"
+    own = "" if sim_mean is None else f" (harness null mean p_extend {sim_mean:.3f})"
+    if reference:
+        base = (
+            "A drift-matched random walk run through the same machinery gives p_extend of about "
+            "0.65 to 0.69 (auditor: iid 0.654, zero drift 0.633, block bootstrap 0.695, with "
+            "P(>= 0.8788) of about 0.0005, 0.0005 and 0.0085). Cite the baseline 0.65 to 0.69, "
+        )
+    else:
+        base = (
+            "Baseline not simulated for this run; see reports/backtest_audit.md (DJ reference "
+            f"run only). Pair {pair}. Cite the harness baseline{own}, "
+        )
+    return f"{_R1_HEAD} {base}p_sim = {sim} and n = {n_obs}; never p_holm alone."
+
+
 EXPLORATORY_NOTE = (
     "exploratory: the single-group classification uses information up to c+h (R11 F4)"
 )

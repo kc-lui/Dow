@@ -202,13 +202,20 @@ def _apply_labels(run: PairRun, canonical: dict[str, dict[str, str]]) -> None:
         row = run.outcomes[r].primary
         row.label = lab["label"]
         if r == "R1":
-            sim = run.outcomes["R1"].details.get("p_sim")
-            row.notes += "; r1_caveat=null 0.5 is not a random-walk baseline (baseline 0.65-0.69, "
-            row.notes += f"p_sim={'n/a' if sim is None else format(sim, '.4f')}, n={row.n_obs})"
+            row.notes += "; r1_caveat=" + r1_caveat_for(run).replace("; ", ", ")
         row.notes += (f"; p_holm={lab['p_holm']:.6f}; refute_bound={lab['bound']:.6f} "
                       f"vs null {row.null_value:.6f}")
         if r in proto.WORST_GRID_RULES:
             row.notes += f"; p_label_worst_grid={lab['p_label']:.6f}; bound_worst={lab['bound']:.6f}"
+
+
+def r1_caveat_for(pr: PairRun) -> str:
+    """The R1 caveat sentence with this run's n, pair and simulated null."""
+    d = pr.outcomes["R1"].details
+    return proto.r1_caveat(
+        pr.outcomes["R1"].primary.n_obs, pr.pair, d.get("p_sim"), d.get("sim_mean"),
+        reference=proto.is_reference_run(pr.pair, pr.first, pr.last, pr.primary_spec),
+    )
 
 
 def _mark_exploratory(run: PairRun) -> None:
@@ -289,8 +296,7 @@ def run_backtest(
         for r in FAMILY
     }
     lit_ids = {r: canonical.get(proto.RULE_KEY[r], {}).get("ids", "") for r in FAMILY}
-    r1_sim = runs[LABEL_PAIR].outcomes["R1"].details.get("p_sim") if LABEL_PAIR in runs else None
-    notes = [] if r1_sim is None else [proto.R1_CAVEAT.format(p_sim=f"{r1_sim:.4f}")]
+    notes = [r1_caveat_for(runs[LABEL_PAIR])] if LABEL_PAIR in runs else []
     return BacktestRun(
         uuid.uuid4().hex, started, time.time() - t0, cfg.config_hash(),
         protocol.table_hash, protocol.table_hash_scoped, latest_integrity_report(root),

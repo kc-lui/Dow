@@ -30,3 +30,19 @@ def test_caveat_extraction_is_verbatim_and_has_bgk():
     assert proto.BGK_CAVEAT in text
     assert len(proto.coverage_caveats(text)) >= 6
     assert "R8" in proto.printed_caveats(text)
+
+
+def test_r1_caveat_uses_run_numbers():
+    import datetime as dt
+
+    ref = proto.r1_caveat(33, "DJ", 0.0055, 0.69, reference=True)
+    assert "n = 33" in ref and "0.0055" in ref and "0.65 to 0.69" in ref
+    other = proto.r1_caveat(20, "SP_IYT", 0.0123, 0.7, reference=False)
+    assert "n = 20" in other and "0.0123" in other and "SP_IYT" in other
+    assert "0.65 to 0.69" not in other and "0.0085" not in other
+    assert "Baseline not simulated for this run; see reports/backtest_audit.md" in other
+    assert "p_sim = n/a" in proto.r1_caveat(1, "DJ", None)
+    d = dt.date
+    assert proto.is_reference_run("DJ", d(1992, 1, 2), d(2026, 11, 6), "pct0.03/0.08f15")
+    assert not proto.is_reference_run("DJ", d(2020, 1, 2), d(2021, 2, 24), "pct0.03/0.08f15")
+    assert not proto.is_reference_run("SP_IYT", d(1992, 1, 2), d(2026, 11, 6), "pct0.03/0.08f15")

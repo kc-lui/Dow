@@ -1,0 +1,34 @@
+{
+  "score": 93,
+  "summary": "Round 2 of dow-swing-detection. All ten round-1 findings are fixed and verified: Example 1 now prints and the test pins 20 swings (the exact command on tests/fixtures/dji_sample.csv reproduces every row and the summary line); Limitation 4 correctly states all series are stored unadjusted (auto_adjust=False in yahoo_fetcher.py) and explains the ETF ex-dividend gap; the Schannep calendar-versus-trading-day mismatch is declared in the Step 5 row and Limitation 5 and labelled agent-defined; the R5 note now gives figures (0.7273, n 44, p_holm 0.31) that match analysis/rule_status_table.md; Step 2 and Step 5 keep only the Rhea Q5 fragment and point to dow-theory-sources Step 3 for Rhea Q7, Schannep Q1, Blay Q8 and stockfeel Q6, with the full text retained in references/evidence.md; --symbol defaults to the upper-cased CSV stem (Example 3 shows DJI_SAMPLE); snapped is recomputed exactly in the wrapper, printed as secondary* and emitted in JSON, and the exactness argument (Deviation 4) is correct; the secondary-specific test covers flag keys, retrace None on the first two swings, the 15-session gap and the count; comma-chained add_argument lines are gone and ruff format --check reports 6 files already formatted; the description now carries 次要趨勢 / 小型趨勢. Contract compliance holds: frontmatter has only name and description, the description measures exactly 1024 characters via a YAML parse (at the limit, zero headroom), the eight H2 sections are in order, no /Users/ path, scripts are 38/56/60 lines and import only dowtheory, pytest 5/5, check_labels.py and check_quotes.py ALL CLEAN, ruff check passes. Fidelity: all eight English quotes in SKILL.md and evidence.md are verbatim on their Qn lines in research/sources with matching URLs, the stockfeel Q6 paraphrase matches the Chinese note; R-006 to R-013, R-015, R-020, R-036 and R-046 labels match canonical_rules.md and the R-046 0.10 drift is called out; the flip rules, Deviation 1 pivot alternation, ATR fallback, confirmed_idx = i + n, the 15-session causal filter (pct/atr only), snap within 2 bars with later confirmation, flag thresholds 21/90/8/0.03 and the n = 13 secondary pivot width all match src/dowtheory/swings.py, algorithm_contract.md and configs/dow.yaml; the Step 4 sensitivity rows match spec_review_p3.md section 3b; Example 2, the 2020-03-13 one-day leg and the 450 + 84 = 534 full-history count reproduce against ClickHouse today. The three standard operator questions (list secondary swings since 2024, when a swing was confirmed and why a correction is not yet secondary, whether the 3 percent threshold is sourced) are answered directly by Example 2, Steps 3 and 4 with the Example 2 reading, and Step 2 with Limitation 1. What keeps it from a higher mark are two small fidelity slips in prose (the Example 2 reading says 16 sessions where the data gives exactly 15, the filter minimum; Limitation 8 says at most 46 percent at any threshold while the skill's own Step 4 table shows 49 percent for 0.08 with the filter), the description sitting at exactly the 1024-character ceiling, and a CSV edge case where the stem default silently filters a symbol-column file to zero rows.",
+  "findings": [
+    {
+      "severity": "low",
+      "path": "skills/dow-swing-detection/SKILL.md",
+      "line": 175,
+      "message": "The Example 2 reading says the 2025-04-08 low became knowable on 2025-04-30, '16 sessions later'. Counting sessions in dow.mkt_klines (Good Friday 2025-04-18 closed) gives idx(2025-04-30) - idx(2025-04-08) = 15, which is exactly secondary_min_sessions; the filter was binding on that bar. The number is wrong and the more informative reading (confirmation landed on the first bar the time filter allowed) is missed.",
+      "improvement": "Change '16 sessions later' to '15 sessions later, the first bar the 15-session filter allowed' so the example illustrates the filter mechanism it cites."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-swing-detection/SKILL.md",
+      "line": 213,
+      "message": "Limitation 8 states 'at most 46 percent of reactions fall in the 1/3 to 2/3 band at any threshold', copied from the spec_review_p3.md judgement list, but the skill's own Step 4 table (line 86) shows 49 percent for the adopted 0.08 + 15-session filter setting. The limitation contradicts the table two sections above it.",
+      "improvement": "Write 'at most 49 percent of reactions (46 percent without the time filter) fall in the 1/3 to 2/3 band at any threshold tested' and keep the 【agent-defined】 label."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-swing-detection/SKILL.md",
+      "line": 3,
+      "message": "The description parses to exactly 1024 characters (YAML folded scalar, measured with PyYAML). It is inside the ≤1024 contract limit but any future edit, including adding one trigger word, will push it over and break skill loading.",
+      "improvement": "Trim about 30 characters now (for example drop 'zigzag or pivot points, ' from the trigger list, since 'swings, ... ATR swings' and 'N-bar pivot' already cover it) so the description keeps headroom."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-swing-detection/scripts/swings.py",
+      "line": 32,
+      "message": "With --source csv and no --symbol, the symbol defaults to the upper-cased file stem. loader._load_csv then filters on a 'symbol' column when one exists, so a multi-symbol CSV named export.csv is filtered to symbol 'EXPORT', yields zero rows and fails with 'No bars for EXPORT from csv', an error that does not mention the stem default. Prerequisites item 2 describes both behaviours but not their interaction.",
+      "improvement": "Add one sentence to Prerequisites item 2: 'If the CSV has a symbol column, pass --symbol explicitly; the stem default will not match.' Optionally, in the wrapper, only apply the stem default when the CSV has no symbol column (one pandas header read)."
+    }
+  ]
+}

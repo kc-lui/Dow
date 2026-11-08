@@ -12,6 +12,7 @@ Sections
   F  secondary swings: retracement 1/3-2/3 and 21-90 day duration shares; sensitivity
   G  lines: counts under alternative band / min-session / sideways definitions
   H  SUSPECT episodes after DEFENSE_BREAK, stale defense lines, Rhea 5%/15-day screen
+  I  (--equal-tol) equal-extreme tolerance prototype for HH/HL labelling
 """
 
 from __future__ import annotations
@@ -360,13 +361,9 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
-
-
 # --------------------------------------------------------------------------- I
 def equal_tolerance_test(df, pct, tol):
-    """Monkeypatch-free prototype: relabel a swing within ``tol`` of the previous same-kind
+    """Prototype (temporarily patches ``trend._label``, restored in ``finally``): relabel a swing within ``tol`` of the previous same-kind
     swing as the counter swing (double top = LH, double bottom = HL), then replay."""
     import dowtheory.trend as T
 
@@ -393,9 +390,16 @@ def equal_tolerance_test(df, pct, tol):
           f"longest_suspect={longest} final={st.state} since {st.since}; 2015+ reversals={revs}")
 
 
-if __name__ == "__main__" and "--equal-tol" in sys.argv:
-    _a, _b = load_pair()
+def run_equal_tol() -> None:
+    a, _ = load_pair()
     print("\n[I] equal-extreme tolerance prototype, ^DJI 1992->")
-    for _pct in (0.06, 0.10):
-        for _tol in (0.0, 0.005, 0.01):
-            equal_tolerance_test(_a, _pct, _tol)
+    for pct in (0.06, 0.10):
+        for tol in (0.0, 0.005, 0.01):
+            equal_tolerance_test(a, pct, tol)
+
+
+if __name__ == "__main__":
+    if "--equal-tol" in sys.argv:
+        run_equal_tol()
+        sys.exit(0)
+    sys.exit(main())

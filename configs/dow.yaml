@@ -22,21 +22,25 @@ data:
 swings:
   method: pct
   minor_pct: 0.03
-  secondary_pct: 0.10
+  secondary_pct: 0.08          # R8 review: 0.10 too coarse (median confirmation lag 23 bars)
+  secondary_min_sessions: 15   # causal time filter wired into the secondary zig-zag flip (trading sessions)
+  per_symbol_secondary_pct: {}  # optional overrides, e.g. {'^DJT': 0.12}; must be justified in reports/
   atr_window: 14
   atr_mult: 2.0
   pivot_n: 5
-  secondary_min_days: 21
+  secondary_min_days: 21       # Rhea window flag only (calendar days); literature-disputed
   secondary_max_days: 90
   schannep_min_days: 8
   schannep_min_pct: 0.03
 trend:
   require_lower_high_for_reversal: true
+  equal_extreme_tol: 0.005     # near-equal extremes (within 0.5%) are not counted as HH/LL/HL/LH
 line:
   band_pct: 0.05
-  min_days: 14
+  min_sessions: 15             # Rhea 2-3 weeks = 10-15 trading sessions
+  max_drift_frac: 0.5          # net drift over the window <= band_pct * max_drift_frac in both averages
 confirmation:
-  max_days: null
+  max_days: null               # no window (Rhea); matching is cycle-aware in either order
 levels:
   tol_mode: pct
   tol_pct: 0.0075

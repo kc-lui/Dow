@@ -81,3 +81,24 @@ Numbers serialised as floats in JSON; Decimal internally.
 
 ## CLI
 `dow analyze --symbol ^DJI --pair ^DJT [--as-of YYYY-MM-DD] [--start] [--source clickhouse|csv --csv PATH --csv-pair PATH] [--method pct|atr|pivot] [--no-chart] [--persist]` → prints markdown, writes PNG + JSON; `--persist` inserts into `dow.str_swing_log`, `dow.str_trend_state_snapshots`, `dow.str_level_log`.
+
+## Deviations
+
+Recorded by the swings/trend implementation (`swings.py`, `trend.py`).
+
+1. **Pivot alternation.** The contract says same-kind neighbours collapse to the more extreme one. Rewriting an already emitted swing would break truncation invariance, so detection is append-only: two same-kind pivots with no opposite pivot between them are both kept and the deepest close between them is inserted as the opposite swing (its `confirmed_idx` equals that of the second pivot). Plateau repeats without a real dip keep the earlier pivot. Flat windows (bar is both max and min) yield no pivot.
+2. **ATR threshold.** `atr_mult * ATR[i] / candidate_price`, ATR a simple rolling mean of true range over `atr_window` bars; no swing can flip while ATR is NaN or zero. Without high/low the true range is `|close - prev close|`.
+3. **Multiscale parameters.** `detect_multiscale` widens the minor parameters for the secondary scale by `secondary_pct / minor_pct`: `atr_mult` is multiplied, `pivot_n` multiplied and rounded.
+4. **`nest_scales`.** Returns `(snapped_swings, flags)` where `flags[final_idx]` is `snapped`. A snapped secondary swing adopts the minor swing's bar and price and `confirmed_idx = max(secondary, minor)` to avoid lookahead. `compute_secondary_metrics` is applied afterwards by `detect_multiscale`.
+5. **Swing signals** (HH/HL/LH/LL) are stamped with the bar at which the swing is confirmed (`Signal.idx/ts`), with `price` the swing price and `level` the previous same-kind swing price.
+6. **State machine details.** `secondary_direction` is the opposite of the last confirmed swing kind (last H confirmed means price is correcting down). `since` changes only when the primary direction is established or flips, not on SUSPECT transitions. `REVERSAL_*` from a SUSPECT state requires a counter swing (LH in a bull, HL in a bear) since the last HH/LL; a SUSPECT state reached via `DEFENSE_BREAK` without a counter swing waits for one. In non-strict mode a defense break flips directly and emits only `DEFENSE_BREAK`. `TrendState` and `Swing.retrace_ratio` carry defaults; `State` values are plain `str` constants.
+7. `run_trend` returns one `TrendState` snapshot per bar (aligned with `close`).
+
+Recorded by the levels/line/confirmation/analysis/chart implementation.
+
+8. **Level inputs.** `analysis.analyze` clusters *minor* swings (secondary swings alone rarely repeat within 0.75%). Zones span min/max of members, widened to at least +/- tolerance/2 around the mean. `max_levels` keeps the clusters closest to the last close. `kind` accepts `H`/`L`/`resistance`/`support`.
+9. **Lines.** Windows are counted in sessions, do not overlap, and the breakout is the first later close outside the window's own min/max in either series (earliest wins). `confirmed_both` needs the other series to break the same way (calendar-day lag <= `max_days`; any later date when `None`). Each line breakout is also emitted as a `LINE_BREAKOUT_UP/DOWN` signal (not agent-defined) by `analysis.py`, since `run_trend` does not see lines.
+10. **Pair confirmation.** `pair_confirm` rules: either side UNDEFINED -> pending; opposite sides, or same side with one PRIMARY and one SUSPECT -> non_confirmation; identical states -> confirmed. Per-signal `confirmation` is `confirmed`/`pending` for reversals and line breakouts (other average shows the same kind on/after the date, or within +/- `max_days`), `not_applicable` otherwise or without a pair.
+11. **`volume_confirms`.** Compares mean daily volume on legs aligned with the net move vs counter legs over the last four secondary swings; `None` when volume is all zero or either leg group is empty.
+12. **Chart.** Two index frames are inner-joined on date before analysis. Pair close is drawn on a right axis. Dotted vertical signal lines with text are limited to `REVERSAL_*` and `DEFENSE_BREAK`; line breakouts are small triangles; HH/HL/LH/LL are not repeated. Line ranges shorter than 28 calendar days are not shaded (at band 5% there are ~100 over 2015-2026).
+13. **Result sections** hold native `Decimal`/`date` values; conversion happens only in `to_dict()`. `swings` lists minor and secondary swings of the analysed symbol. `--pair` defaults to the `pairs.yaml` partner of `--symbol` for the ClickHouse source.

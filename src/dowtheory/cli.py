@@ -7,10 +7,11 @@ import logging
 import runpy
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 import pandas as pd
 
-from dowtheory.config import DowConfig, load_config, project_root
+from dowtheory.config import DowConfig, load_config, load_pairs, project_root
 from dowtheory.data import quality, stooq_fetcher, yahoo_fetcher
 from dowtheory.data.bars import to_insert_frame
 from dowtheory.data.quality import QualityIssue
@@ -83,6 +84,41 @@ def cmd_check(args: argparse.Namespace) -> int:
     return status
 
 
+def cmd_analyze(args: argparse.Namespace) -> int:
+    """Run the Dow analysis; print markdown, write the PNG and the JSON twin."""
+    from dowtheory.analysis import analyze
+    from dowtheory.chart import chart_filename, render_chart
+    from dowtheory.persist import persist
+    from dowtheory.report import to_markdown
+
+    cfg = load_config(args.config)
+    pair = args.pair
+    if pair is None and args.source == "clickhouse":
+        pair = next((p[1] for p in load_pairs().values() if p[0] == args.symbol), None)
+    client = ClickHouseClient() if args.source == "clickhouse" or args.persist else None
+    try:
+        result, df, df_pair = analyze(
+            args.symbol, pair, args.as_of, args.start, args.source, args.csv, args.csv_pair,
+            args.method, cfg, client,
+        )
+        print(to_markdown(result))
+        out_dir = Path(args.out_dir)
+        json_dir = out_dir.parent / "json"
+        json_dir.mkdir(parents=True, exist_ok=True)
+        json_path = json_dir / chart_filename(result).replace(".png", ".json")
+        json_path.write_text(result.to_json(), encoding="utf-8")
+        print(f"JSON: {json_path}")
+        if not args.no_chart:
+            print(f"Chart: {render_chart(result, df, df_pair, out_dir)}")
+        if args.persist:
+            assert client is not None
+            print(f"Persisted rows: {persist(result, client)}")
+    finally:
+        if client is not None:
+            client.close()
+    return 0
+
+
 def _stub(name: str):
     def run(args: argparse.Namespace) -> int:
         print(f"{name}: not implemented in P2")
@@ -104,7 +140,19 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("check", help="run integrity checks (exit 1 on any error)")
     p.add_argument("--symbols", nargs="+")
     p.set_defaults(func=cmd_check)
-    sub.add_parser("analyze", help="(P3)").set_defaults(func=_stub("analyze"))
+    p = sub.add_parser("analyze", help="trend state, defense line, levels, chart")
+    p.add_argument("--symbol", required=True)
+    p.add_argument("--pair", default=None, help="confirmation index (default: from pairs.yaml)")
+    p.add_argument("--as-of", dest="as_of", default=None, help="YYYY-MM-DD (default: last bar)")
+    p.add_argument("--start", default=None)
+    p.add_argument("--source", choices=["clickhouse", "csv"], default="clickhouse")
+    p.add_argument("--csv", default=None, help="CSV for --symbol (source=csv)")
+    p.add_argument("--csv-pair", dest="csv_pair", default=None, help="CSV for --pair")
+    p.add_argument("--method", choices=["pct", "atr", "pivot"], default=None)
+    p.add_argument("--no-chart", dest="no_chart", action="store_true")
+    p.add_argument("--persist", action="store_true", help="insert into dow.str_* tables")
+    p.add_argument("--out-dir", dest="out_dir", default="outputs/charts")
+    p.set_defaults(func=cmd_analyze)
     sub.add_parser("backtest", help="(P4)").set_defaults(func=_stub("backtest"))
     return parser
 

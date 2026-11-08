@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-11-08 15:27:09",
+  "seed": null,
+  "selection_mode": "manual",
+  "skill_name": "dow-trend-classification",
+  "skill_file": "skills/dow-trend-classification/SKILL.md",
+  "auto_review": {
+    "skill_name": "dow-trend-classification",
+    "skill_file": "skills/dow-trend-classification/SKILL.md",
+    "skill_type": "execution_or_hybrid",
+    "score": 78,
+    "score_breakdown": {
+      "metadata_use_case": 20,
+      "workflow_coverage": 25,
+      "execution_safety_reproducibility": 23,
+      "supporting_artifacts": 10,
+      "test_health": 0
+    },
+    "findings": [
+      {
+        "severity": "high",
+        "path": "skills/dow-trend-classification/SKILL.md",
+        "line": null,
+        "message": "Skill tests failed.",
+        "improvement": "Fix failing tests before relying on this skill in automation."
+      }
+    ],
+    "improvements_required": true,
+    "improvement_items": [
+      "Skill tests failed. -> Fix failing tests before relying on this skill in automation."
+    ],
+    "test_status": "failed",
+    "test_command": "uv run --extra dev pytest /Users/lui/workspace/Dow/.claude/skills/dow-trend-classification/tests -q",
+    "test_output": ".......F                                                                 [100%]\n=================================== FAILURES ===================================\n__________________ test_dji_since_2015_matches_skill_example ___________________\n\n    @pytest.mark.skipif(not clickhouse_available(), reason=\"ClickHouse not reachable\")\n    def test_dji_since_2015_matches_skill_example() -> None:\n        doc = doc_of(run(\"--symbol\", \"^DJI\", \"--start\", \"2015-01-01\", \"--end\", \"2026-11-06\", csv=None))\n        by_kind = {(s[\"ts\"], s[\"kind\"]) for s in doc[\"signals\"]}\n        assert (\"2018-12-19\", \"DEFENSE_BREAK\") in by_kind\n        assert (\"2020-04-08\", \"DEFENSE_BREAK\") in by_kind\n        assert (\"2023-06-15\", \"REVERSAL_UP\") in by_kind\n        assert doc[\"trend_state\"][\"primary\"] == \"BULL_PRIMARY\"\n        assert doc[\"trend_state\"][\"since\"] == \"2023-06-15\"\n>       assert doc[\"trend_state\"][\"defense_line\"][\"price\"] == 45166.64\nE       assert 45166.6406 == 45166.64\n\nskills/dow-trend-classification/tests/test_cli.py:162: AssertionError\n=========================== short test summary info ============================\nFAILED skills/dow-trend-classification/tests/test_cli.py::test_dji_since_2015_matches_skill_example\n1 failed, 7 passed in 2.76s\n\nwarning: `VIRTUAL_ENV=/Users/lui/.cache/uv/environments-v2/run-dual-axis-review-6327a6ab205cd933` does not match the project environment path `/Users/lui/workspace/Dow/.venv` and will be ignored; use `--active` to target the active environment instead"
+  },
+  "llm_review": {
+    "provided": false,
+    "source_file": null,
+    "score": null,
+    "summary": "",
+    "findings": []
+  },
+  "final_review": {
+    "score": 78,
+    "weights": {
+      "auto_weight": 1.0,
+      "llm_weight": 0.0
+    },
+    "improvements_required": true,
+    "improvement_items": [
+      "Skill tests failed. -> Fix failing tests before relying on this skill in automation."
+    ],
+    "findings": [
+      {
+        "severity": "high",
+        "path": "skills/dow-trend-classification/SKILL.md",
+        "line": null,
+        "message": "Skill tests failed.",
+        "improvement": "Fix failing tests before relying on this skill in automation.",
+        "axis": "auto"
+      }
+    ]
+  },
+  "llm_prompt_file": null
+}

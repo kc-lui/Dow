@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-11-08 16:21:14",
+  "seed": null,
+  "selection_mode": "manual",
+  "skill_name": "dow-levels-and-chart",
+  "skill_file": "skills/dow-levels-and-chart/SKILL.md",
+  "auto_review": {
+    "skill_name": "dow-levels-and-chart",
+    "skill_file": "skills/dow-levels-and-chart/SKILL.md",
+    "skill_type": "execution_or_hybrid",
+    "score": 98,
+    "score_breakdown": {
+      "metadata_use_case": 20,
+      "workflow_coverage": 25,
+      "execution_safety_reproducibility": 23,
+      "supporting_artifacts": 10,
+      "test_health": 20
+    },
+    "findings": [],
+    "improvements_required": false,
+    "improvement_items": [],
+    "test_status": "passed",
+    "test_command": "uv run --extra dev pytest /Users/lui/workspace/Dow/.claude/skills/dow-levels-and-chart/tests -q",
+    "test_output": "...........                                                              [100%]\n11 passed in 9.20s\n\nwarning: `VIRTUAL_ENV=/Users/lui/.cache/uv/environments-v2/run-dual-axis-review-6327a6ab205cd933` does not match the project environment path `/Users/lui/workspace/Dow/.venv` and will be ignored; use `--active` to target the active environment instead"
+  },
+  "llm_review": {
+    "provided": true,
+    "source_file": "/Users/lui/workspace/Dow/reports/llm_review_dow-levels-and-chart.json",
+    "score": 96,
+    "summary": "Round 2 of dow-levels-and-chart resolves all eight round-1 findings and the skill now reads as one a domain expert would sign off. Verified on 2026-11-08: skill pytest 11/11 (ClickHouse test executed), check_labels and check_quotes ALL CLEAN with evidence.md passed explicitly, ruff check and ruff format --check clean, no absolute user paths, wrappers 57 and 38 lines. The Example 3 run (--as-of 2022-09-30) was re-executed against ClickHouse read-only and the rewritten member dates match the JSON twin exactly: supports 25,444 = 2019-08-14 + 2020-02-28, 25,072 = 2020-06-11 + 2020-06-26, 24,490 = 2018-03-02 + 2018-10-29, 24,202 = 2018-06-27 + 2018-11-23; resistances 29,450 = 2020-01-17 + 2020-02-12, 34,107 = 2022-05-04 + 2022-08-16, 34,767 = 2021-05-07 + 2021-06-04, 35,697 = 2021-08-16 + 2022-02-09; all prices, touches, the downtrend line and the BEAR_SUSPECT pair status unchanged. Step 8 now names the decision table as R1 to R8, attributes R1 to the primary state in the title and R2 to the REVERSAL_* markers via dow-trend-classification, R6 to the line-breakout triangles via dow-confirmation-and-line, and states that DEFENSE_BREAK and the defense line are excluded from the backtest family; evidence.md row 82 says the same. The R-049 pointer is now stockcloud Q2, Q7, Q21 with Q8 left to R-050, and the evidence.md row paraphrases Q2 correctly. Example 1 states that the same file serves as both legs, so the confirmed status is trivial and the pair line overlays the primary. Prerequisite 2 names the five connection environment variables, which match clickhouse_client.py and .env.example. draw.py refuses --csv without --source csv and the reverse with one argparse error, and the five new tests cover the --end alias, --method atr, a distinct scaled --csv-pair, the plain stdout layout, and both halves of the csv/source pairing error. Contract compliance, fidelity of every quote and R-id, DRY against the four siblings and the honesty of Limitation 5 were re-confirmed unchanged from round 1. One cosmetic remainder keeps the score below the ceiling.",
+    "findings": [
+      {
+        "severity": "low",
+        "path": "skills/dow-levels-and-chart/SKILL.md",
+        "line": 241,
+        "message": "The Example 3 reading says the member dates are 'read from Level.members'. That field exists on the Level dataclass but is not serialised into the JSON twin (levels rows carry only price, zone_low, zone_high, touches, as the test's LEVEL_KEYS asserts), so an operator who follows the pointer to the JSON cannot find them; they must be recovered by matching minor swings against each zone's bounds, which is how this review verified them.",
+        "improvement": "Either say 'members recovered by matching the minor swings in the JSON against each zone's bounds' or, if the maintainers prefer, extend _level_dict in analysis.py to emit members and update LEVEL_KEYS and the Output section accordingly. Add the member dates to the evidence.md Example 3 row so the reading stays checkable."
+      }
+    ]
+  },
+  "final_review": {
+    "score": 97,
+    "weights": {
+      "auto_weight": 0.5,
+      "llm_weight": 0.5
+    },
+    "improvements_required": false,
+    "improvement_items": [],
+    "findings": [
+      {
+        "severity": "low",
+        "path": "skills/dow-levels-and-chart/SKILL.md",
+        "line": 241,
+        "message": "The Example 3 reading says the member dates are 'read from Level.members'. That field exists on the Level dataclass but is not serialised into the JSON twin (levels rows carry only price, zone_low, zone_high, touches, as the test's LEVEL_KEYS asserts), so an operator who follows the pointer to the JSON cannot find them; they must be recovered by matching minor swings against each zone's bounds, which is how this review verified them.",
+        "improvement": "Either say 'members recovered by matching the minor swings in the JSON against each zone's bounds' or, if the maintainers prefer, extend _level_dict in analysis.py to emit members and update LEVEL_KEYS and the Output section accordingly. Add the member dates to the evidence.md Example 3 row so the reading stays checkable.",
+        "axis": "llm"
+      }
+    ]
+  },
+  "llm_prompt_file": null
+}

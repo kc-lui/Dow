@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-11-08 16:10:42",
+  "seed": null,
+  "selection_mode": "manual",
+  "skill_name": "dow-levels-and-chart",
+  "skill_file": "skills/dow-levels-and-chart/SKILL.md",
+  "auto_review": {
+    "skill_name": "dow-levels-and-chart",
+    "skill_file": "skills/dow-levels-and-chart/SKILL.md",
+    "skill_type": "execution_or_hybrid",
+    "score": 98,
+    "score_breakdown": {
+      "metadata_use_case": 20,
+      "workflow_coverage": 25,
+      "execution_safety_reproducibility": 23,
+      "supporting_artifacts": 10,
+      "test_health": 20
+    },
+    "findings": [],
+    "improvements_required": false,
+    "improvement_items": [],
+    "test_status": "passed",
+    "test_command": "uv run --extra dev pytest /Users/lui/workspace/Dow/.claude/skills/dow-levels-and-chart/tests -q",
+    "test_output": ".....                                                                    [100%]\n5 passed in 4.04s\n\nwarning: `VIRTUAL_ENV=/Users/lui/.cache/uv/environments-v2/run-dual-axis-review-6327a6ab205cd933` does not match the project environment path `/Users/lui/workspace/Dow/.venv` and will be ignored; use `--active` to target the active environment instead"
+  },
+  "llm_review": {
+    "provided": false,
+    "source_file": null,
+    "score": null,
+    "summary": "",
+    "findings": []
+  },
+  "final_review": {
+    "score": 98,
+    "weights": {
+      "auto_weight": 1.0,
+      "llm_weight": 0.0
+    },
+    "improvements_required": false,
+    "improvement_items": [],
+    "findings": []
+  },
+  "llm_prompt_file": null
+}

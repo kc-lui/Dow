@@ -42,7 +42,9 @@ class DataConfig:
 class SwingConfig:
     method: str = "pct"
     minor_pct: float = 0.03
-    secondary_pct: float = 0.10
+    secondary_pct: float = 0.08
+    secondary_min_sessions: int = 15
+    per_symbol_secondary_pct: dict[str, float] = field(default_factory=dict)
     atr_window: int = 14
     atr_mult: float = 2.0
     pivot_n: int = 5
@@ -55,12 +57,19 @@ class SwingConfig:
 @dataclass(frozen=True)
 class TrendConfig:
     require_lower_high_for_reversal: bool = True
+    equal_extreme_tol: float = 0.005
 
 
 @dataclass(frozen=True)
 class LineConfig:
     band_pct: float = 0.05
-    min_days: int = 14
+    min_sessions: int = 15
+    max_drift_frac: float = 0.5
+
+    @property
+    def min_days(self) -> int:
+        """Deprecated alias of ``min_sessions`` (kept until all callers are migrated)."""
+        return self.min_sessions
 
 
 @dataclass(frozen=True)

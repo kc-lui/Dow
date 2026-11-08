@@ -25,6 +25,7 @@ BULL_SUSPECT = "BULL_SUSPECT"
 BEAR_SUSPECT = "BEAR_SUSPECT"
 
 SignalKind = Literal[
+    "TREND_ESTABLISHED",
     "REVERSAL_UP",
     "REVERSAL_DOWN",
     "DEFENSE_BREAK",
@@ -74,10 +75,15 @@ class _Bar:
     close: Decimal
 
 
-def _label(sw: Swing, prev: Swing | None) -> str | None:
-    """HH/LH for highs, HL/LL for lows, relative to the previous same-kind swing."""
-    if prev is None or sw.price == prev.price:
+def _label(sw: Swing, prev: Swing | None, tol: float = 0.0) -> str | None:
+    """HH/LH for highs, HL/LL for lows, relative to the previous same-kind swing.
+
+    A swing within ``tol`` (fraction) of the previous one is EQUAL and gets the label ``"EQ"``.
+    """
+    if prev is None:
         return None
+    if abs(sw.price / prev.price - 1) <= Decimal(str(tol)):
+        return "EQ"
     up = sw.price > prev.price
     if sw.kind == "H":
         return "HH" if up else "LH"
@@ -89,6 +95,7 @@ class TrendStateMachine:
 
     def __init__(self, cfg: DowConfig) -> None:
         self._strict = cfg.trend.require_lower_high_for_reversal
+        self._tol = cfg.trend.equal_extreme_tol
         self.state = TrendState()
         self._counter_swing = False  # LH seen in a bull (HL in a bear) since the last HH (LL)
 
@@ -118,47 +125,75 @@ class TrendStateMachine:
             prev = st.last_L
             st.prev_L, st.last_L = prev, sw
         st.secondary_direction = "down" if sw.kind == "H" else "up"
-        return _label(sw, prev), prev
+        return _label(sw, prev, self._tol), prev
 
     def _on_swing(self, sw: Swing, bar: _Bar) -> list[Signal]:
         label, prev = self._record(sw)
         signals: list[Signal] = []
-        if label is not None and prev is not None:
+        if label not in (None, "EQ") and prev is not None:
             note = f"{label}: swing {sw.ts} vs {prev.ts}, confirmed {bar.ts}"
             signals.append(
                 Signal(bar.idx, bar.ts, label, sw.price, prev.price, note, False)  # type: ignore[arg-type]
             )
-        self._react(sw, label, bar)
+        signals.extend(self._react(sw, label, bar))
         return signals
 
-    def _react(self, sw: Swing, label: str | None, bar: _Bar) -> None:
+    def _react(self, sw: Swing, label: str | None, bar: _Bar) -> list[Signal]:
+        """Apply the transition table.
+
+        An EQUAL swing emits no HH/HL/LH/LL signal. It is a failure to extend the trend only
+        when it is the trend-side extreme (double top in a bull, double bottom in a bear): it
+        then counts as the counter swing. Otherwise it changes nothing.
+        """
         state = self.state.state
         if state == UNDEFINED:
-            self._try_establish(bar)
-        elif state in (BULL_PRIMARY, BULL_SUSPECT):
-            if label == "HH":
-                self._set(BULL_PRIMARY, counter=False)
-            elif label == "LH":
-                self._set(BULL_SUSPECT, counter=True)
-            elif label == "HL":
-                self._set_defense(sw, "reaction_low")
-        else:
-            if label == "LL":
-                self._set(BEAR_PRIMARY, counter=False)
-            elif label == "HL":
-                self._set(BEAR_SUSPECT, counter=True)
-            elif label == "LH":
-                self._set_defense(sw, "reaction_high")
+            return self._try_establish(bar)
+        bull = state in (BULL_PRIMARY, BULL_SUSPECT)
+        if label == "EQ":
+            label = ("LH" if sw.kind == "H" else None) if bull else ("HL" if sw.kind == "L" else None)
+        if label == ("HH" if bull else "LL"):
+            self._resume_primary(BULL_PRIMARY if bull else BEAR_PRIMARY)
+        elif label == ("LH" if bull else "HL"):
+            if state in (BULL_PRIMARY, BEAR_PRIMARY):
+                self._set(BULL_SUSPECT if bull else BEAR_SUSPECT, counter=True)
+            else:
+                self._counter_swing = True
+        elif label == ("HL" if bull else "LH"):
+            self._set_defense(sw, "reaction_low" if bull else "reaction_high")
+        return []
 
-    def _try_establish(self, bar: _Bar) -> None:
+    def _resume_primary(self, state: str) -> None:
+        """Back to (or stay in) PRIMARY on a new extreme; refresh the defense line.
+
+        The line becomes the latest confirmed reaction extreme (last L in a bull, last H in a
+        bear) so it cannot go stale across a SUSPECT episode.
+        """
+        st = self.state
+        self._set(state, counter=False)
+        anchor, kind = (
+            (st.last_L, "reaction_low") if state == BULL_PRIMARY else (st.last_H, "reaction_high")
+        )
+        if anchor is not None:
+            self._set_defense(anchor, kind)  # type: ignore[arg-type]
+
+    def _try_establish(self, bar: _Bar) -> list[Signal]:
         st = self.state
         if None in (st.last_H, st.prev_H, st.last_L, st.prev_L):
-            return
+            return []
         assert st.last_H and st.prev_H and st.last_L and st.prev_L  # narrow for type checkers
-        if st.last_H.price > st.prev_H.price and st.last_L.price > st.prev_L.price:
+        h = _label(st.last_H, st.prev_H, self._tol)
+        low = _label(st.last_L, st.prev_L, self._tol)
+        if (h, low) == ("HH", "HL"):
             self._enter(BULL_PRIMARY, bar, st.last_L, "reaction_low")
-        elif st.last_H.price < st.prev_H.price and st.last_L.price < st.prev_L.price:
+        elif (h, low) == ("LH", "LL"):
             self._enter(BEAR_PRIMARY, bar, st.last_H, "reaction_high")
+        else:
+            return []
+        note = (
+            f"{st.state} established ({h}+{low}); state before the first established trend "
+            "depends on where the data starts"
+        )
+        return [Signal(bar.idx, bar.ts, "TREND_ESTABLISHED", bar.close, st.defense_line, note, False)]
 
     # ------------------------------------------------------------------ closes
     def _on_close(self, bar: _Bar) -> list[Signal]:
@@ -219,6 +254,18 @@ class TrendStateMachine:
     def _set_defense(self, anchor: Swing, kind: DefenseKind) -> None:
         st = self.state
         st.defense_line, st.defense_line_ts, st.defense_line_kind = anchor.price, anchor.ts, kind
+
+
+def warmup_note(signals: Sequence[Signal], data_start: dt.date) -> str:
+    """Describe the data-start dependence of the initial trend state (for ``meta.warmup_note``)."""
+    first = next((s for s in signals if s.kind == "TREND_ESTABLISHED"), None)
+    if first is None:
+        return f"No trend established since data start {data_start}; state is UNDEFINED."
+    return (
+        f"Data starts {data_start}; the first trend was established on {first.ts} "
+        f"({first.note.split(' ', 1)[0]}). The state before that date is UNDEFINED and the "
+        "first established trend depends on the data start."
+    )
 
 
 def run_trend(

@@ -14,7 +14,12 @@ Direction = Literal["up", "down", "none"]
 
 @dataclass(frozen=True)
 class LineRange:
-    """A qualifying consolidation window and how (and whether) it was resolved."""
+    """A qualifying consolidation window and how (and whether) it was resolved.
+
+    ``confirmed_ts`` is the later of the two averages' breakout dates (same direction); it
+    is ``None`` while the other average has not broken out yet. ``confirmed_both`` is
+    evaluated with data up to ``as_of`` only, i.e. it equals ``confirmed_ts is not None``.
+    """
 
     start: dt.date
     end: dt.date
@@ -23,6 +28,7 @@ class LineRange:
     breakout: Direction
     breakout_ts: dt.date | None
     confirmed_both: bool
+    confirmed_ts: dt.date | None = None
 
 
 def _window_end(values: np.ndarray, band_pct: float, start: int, stop: int) -> int:
@@ -52,22 +58,34 @@ def _first_breakout(
     return None
 
 
+def _drift_ok(values: np.ndarray, i: int, end: int, limit: float) -> bool:
+    """Net drift |close_end / close_start - 1| stays within ``limit``."""
+    return abs(values[end] / values[i] - 1.0) <= limit
+
+
 def detect_lines(
     close_a: pd.Series,
     close_b: pd.Series,
     band_pct: float = 0.05,
-    min_days: int = 14,
+    min_sessions: int = 15,
     as_of_idx: int | None = None,
     max_days: int | None = None,
+    max_drift_frac: float = 0.5,
 ) -> list[LineRange]:
-    """Find windows where both series stay within ``band_pct`` for ``min_days`` sessions.
+    """Find sideways windows in both averages and the breakout that ends them.
 
-    A window qualifies when ``(max - min) / mean <= band_pct`` holds for both series over
-    at least ``min_days`` consecutive sessions; it is extended greedily and windows do not
-    overlap. The breakout is the first later close outside the window's min/max range in
-    either series (earliest wins). ``confirmed_both`` is true when the other series breaks
-    the same way within ``max_days`` calendar days (``None`` = any date up to ``as_of``).
-    Only bars up to ``as_of_idx`` (default: last bar) are used.
+    A window qualifies when, for both series, ``(max - min) / mean <= band_pct`` over at
+    least ``min_sessions`` consecutive trading sessions and the net drift
+    ``|close_end / close_start - 1|`` is at most ``band_pct * max_drift_frac``. The window
+    is the longest in-band window from its start (greedy); windows do not overlap. A maximal
+    window that fails the drift rule is consumed without being reported.
+
+    The breakout is the first later close outside the window's min/max range in either
+    series (earliest wins). ``confirmed_ts`` is the date the other series has broken out the
+    same way (``None`` until then, or if it lies more than ``max_days`` calendar days after
+    the first break); ``confirmed_both`` is ``confirmed_ts is not None``. Only bars up to
+    ``as_of_idx`` (default: last bar) are used, so results are invariant under truncation of
+    later data.
 
     Raises:
         ValueError: if the series are not index-aligned.
@@ -81,17 +99,20 @@ def detect_lines(
     a = close_a.to_numpy(dtype=float)
     b = close_b.to_numpy(dtype=float)
     index = close_a.index
+    limit = band_pct * max_drift_frac
 
     out: list[LineRange] = []
     i = 0
     while i <= stop:
-        end = min(_window_end(a, band_pct, i, stop), _window_end(b, band_pct, i, stop))
-        # The two series may stop at different bars; re-check the shorter window for both.
-        end = _joint_end(a, b, band_pct, i, end)
-        if end - i + 1 < min_days:
+        end = _joint_end(a, b, band_pct, i, min(_window_end(a, band_pct, i, stop),
+                                                _window_end(b, band_pct, i, stop)))
+        if end - i + 1 < min_sessions:
             i += 1
             continue
-        out.append(_build(index, a, b, i, end, stop, max_days))
+        # A long in-band window that drifts is a slow trend, not a line: it is consumed
+        # (so the next candidate cannot chain onto it) but not reported.
+        if _drift_ok(a, i, end, limit) and _drift_ok(b, i, end, limit):
+            out.append(_build(index, a, b, i, end, stop, max_days))
         i = end + 1
     return out
 
@@ -99,7 +120,10 @@ def detect_lines(
 def _joint_end(a: np.ndarray, b: np.ndarray, band_pct: float, start: int, end: int) -> int:
     """Shrink ``end`` until both series satisfy the band over ``[start, end]``."""
     while end > start:
-        if _window_end(a, band_pct, start, end) == end and _window_end(b, band_pct, start, end) == end:
+        if (
+            _window_end(a, band_pct, start, end) == end
+            and _window_end(b, band_pct, start, end) == end
+        ):
             return end
         end -= 1
     return start
@@ -116,14 +140,14 @@ def _build(
     brk_b = _first_breakout(b, float(sb.min()), float(sb.max()), end, stop)
     first = [x for x in (brk_a, brk_b) if x is not None]
     if not first:
-        return LineRange(
-            index[i].date(), index[end].date(), band_a, band_b, "none", None, False
-        )
+        return LineRange(index[i].date(), index[end].date(), band_a, band_b, "none", None, False)
     k, direction = min(first, key=lambda x: x[0])
-    confirmed = False
-    if brk_a is not None and brk_b is not None:
-        lag = (index[max(brk_a[0], brk_b[0])] - index[k]).days
-        confirmed = brk_a[1] == brk_b[1] and (max_days is None or lag <= max_days)
+    confirmed_ts = None
+    if brk_a is not None and brk_b is not None and brk_a[1] == brk_b[1]:
+        k2 = max(brk_a[0], brk_b[0])
+        if max_days is None or (index[k2] - index[k]).days <= max_days:
+            confirmed_ts = index[k2].date()
     return LineRange(
-        index[i].date(), index[end].date(), band_a, band_b, direction, index[k].date(), confirmed
+        index[i].date(), index[end].date(), band_a, band_b, direction, index[k].date(),
+        confirmed_ts is not None, confirmed_ts,
     )

@@ -14,7 +14,8 @@ STATUS_LABELS: dict[str, str] = {
     "defense_line": "agent-defined",
     "secondary_duration_bounds": "literature-disputed",
     "secondary_retracement": "literature-disputed",
-    "hamilton_3pct_filter": "literature-consensus",
+    "rhea_3pct_filter": "single-source",
+    "secondary_pct_threshold": "agent-defined",
     "line_definition": "literature-consensus",
     "two_average_confirmation": "literature-consensus",
 }

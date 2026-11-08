@@ -102,6 +102,10 @@ Recorded by the levels/line/confirmation/analysis/chart implementation.
 11. **`volume_confirms`.** Compares mean daily volume on legs aligned with the net move vs counter legs over the last four secondary swings; `None` when volume is all zero or either leg group is empty.
 12. **Chart.** Two index frames are inner-joined on date before analysis. Pair close is drawn on a right axis. Dotted vertical signal lines with text are limited to `REVERSAL_*` and `DEFENSE_BREAK`; line breakouts are small triangles; HH/HL/LH/LL are not repeated. Line ranges shorter than 28 calendar days are not shaded (at band 5% there are ~100 over 2015-2026).
 13. **Result sections** hold native `Decimal`/`date` values; conversion happens only in `to_dict()`. `swings` lists minor and secondary swings of the analysed symbol. `--pair` defaults to the `pairs.yaml` partner of `--symbol` for the ClickHouse source.
+14. **A2 EQUAL swings (implementation).** An EQUAL swing emits no HH/HL/LH/LL signal. It still counts as the counter swing when it is the trend-side extreme (double top in a bull, double bottom in a bear), because otherwise the 2016-04-14 REVERSAL_UP on ^DJI (R8 prototype, section I) cannot reappear. Other EQUAL swings change nothing.
+15. **A1 filter semantics.** The flip is deferred until `i - previous_swing.idx >= secondary_min_sessions` at the confirmation bar `i`; it applies to pct and atr, not pivot. `detect_multiscale(close, cfg, high=None, low=None, *, symbol=None)` keeps `symbol` keyword-only so positional callers stay valid.
+16. **A3.** On return to PRIMARY (HH in a bull, LL in a bear) the defense line is refreshed to the latest confirmed reaction extreme. No extra breaker was added: a SUSPECT state reached by a defense break resolves on the next counter swing or new extreme (^DJI longest stall now 296 sessions from 2018-12-19, a genuine unresolved correction).
+17. **A4/A5.** `trend.warmup_note(signals, data_start)` builds `meta.warmup_note`. `Swing.flags` is a dict excluded from the hash; it is `{}` on minor swings.
 
 ## Amendments after R8 spec review (2026-11-08, reports/spec_review_p3.md)
 

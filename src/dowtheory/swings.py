@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from typing import Literal, NamedTuple
 
 import numpy as np
 import pandas as pd
 
-from dowtheory.config import DowConfig
+from dowtheory.config import DowConfig, SwingConfig
 
 Kind = Literal["H", "L"]
 Scale = Literal["minor", "secondary", "primary"]
@@ -26,6 +26,9 @@ _PRICE_Q = Decimal("0.0001")
 _RATIO_Q = Decimal("0.000001")
 _EPS = 1e-12
 _SNAP_BARS = 2
+_THIRD = Decimal("0.333333")
+_HALF = Decimal("0.5")
+_TWO_THIRDS = Decimal("0.666667")
 
 
 @dataclass(frozen=True)
@@ -42,6 +45,7 @@ class Swing:
     amplitude_pct: Decimal
     duration_days: int
     retrace_ratio: Decimal | None = None
+    flags: dict[str, bool] = field(default_factory=dict, hash=False)
 
 
 class _Raw(NamedTuple):
@@ -96,8 +100,19 @@ def _decide_start(v: np.ndarray, i: int, hi: int, lo: int, thr: Callable[[int, f
     return None
 
 
-def _zigzag(v: np.ndarray, thr: Callable[[int, float], float]) -> list[_Raw]:
-    """Causal zig-zag: a candidate extreme flips once price retraces ``thr`` against it."""
+def _time_ok(i: int, out: Sequence[_Raw], min_sessions: int) -> bool:
+    """A flip is accepted only once ``min_sessions`` bars passed since the previous swing."""
+    return not out or i - out[-1].idx >= min_sessions
+
+
+def _zigzag(
+    v: np.ndarray, thr: Callable[[int, float], float], min_sessions: int = 0
+) -> list[_Raw]:
+    """Causal zig-zag: a candidate extreme flips once price retraces ``thr`` against it.
+
+    With ``min_sessions`` > 0 a flip is also deferred until ``i - previous swing idx`` reaches
+    it. The test uses only bars up to ``i``, so the filter is causal.
+    """
     out: list[_Raw] = []
     hi = lo = 0
     cand: int | None = None
@@ -116,13 +131,13 @@ def _zigzag(v: np.ndarray, thr: Callable[[int, float], float]) -> list[_Raw]:
         elif cand_kind == "H":
             if x > v[cand]:
                 cand = i
-            elif _moved(x, v[cand], thr(i, v[cand]), -1):
+            elif _moved(x, v[cand], thr(i, v[cand]), -1) and _time_ok(i, out, min_sessions):
                 out.append(_Raw(cand, "H", i))
                 cand, cand_kind = _arg_extreme(v, cand + 1, i + 1, "L"), "L"
         else:
             if x < v[cand]:
                 cand = i
-            elif _moved(x, v[cand], thr(i, v[cand]), +1):
+            elif _moved(x, v[cand], thr(i, v[cand]), +1) and _time_ok(i, out, min_sessions):
                 out.append(_Raw(cand, "L", i))
                 cand, cand_kind = _arg_extreme(v, cand + 1, i + 1, "H"), "H"
     return out
@@ -222,18 +237,27 @@ def detect_swings(
     high: pd.Series | None = None,
     low: pd.Series | None = None,
     scale: Scale = "minor",
+    min_sessions: int = 0,
 ) -> list[Swing]:
-    """Detect strictly alternating confirmed swings on ``close`` (see module docstring)."""
+    """Detect strictly alternating confirmed swings on ``close`` (see module docstring).
+
+    ``min_sessions`` (pct and atr only) defers a flip until that many bars passed since the
+    previous swing.
+    """
     if close.isna().any():
         raise ValueError("close contains NaN")
     v = close.to_numpy(dtype=float)
     if method == "pct":
         if threshold <= 0:
             raise ValueError("threshold must be > 0")
-        raws = _zigzag(v, lambda _i, _p: threshold)
+        raws = _zigzag(v, lambda _i, _p: threshold, min_sessions)
     elif method == "atr":
         atr = _atr(close, _aligned(high, close), _aligned(low, close), atr_window).to_numpy()
-        raws = _zigzag(v, lambda i, p: atr_mult * atr[i] / p if atr[i] > 0 else float("nan"))
+        raws = _zigzag(
+            v,
+            lambda i, p: atr_mult * atr[i] / p if atr[i] > 0 else float("nan"),
+            min_sessions,
+        )
     elif method == "pivot":
         if pivot_n < 1:
             raise ValueError("pivot_n must be >= 1")
@@ -282,8 +306,29 @@ def nest_scales(
     return out, flags
 
 
-def compute_secondary_metrics(swings: Sequence[Swing]) -> list[Swing]:
-    """Fill ``amplitude_pct``, ``duration_days`` and ``retrace_ratio`` from the swing chain."""
+def secondary_flags(swing: Swing, cfg: SwingConfig) -> dict[str, bool]:
+    """Literature-disputed flags for a secondary swing; they never filter swings.
+
+    ``rhea_window``: leg duration in ``[secondary_min_days, secondary_max_days]`` calendar days.
+    ``schannep_window``: duration >= ``schannep_min_days`` and amplitude >= ``schannep_min_pct``.
+    ``retrace_in_third_two_thirds`` / ``retrace_in_third_half``: retrace ratio in [1/3, 2/3] /
+    [1/3, 1/2] (ratio is quantised to 6 dp, so 1/3 is taken as 0.333333). Flags are False when
+    the quantity is unavailable (first swings).
+    """
+    r = swing.retrace_ratio
+    return {
+        "rhea_window": cfg.secondary_min_days <= swing.duration_days <= cfg.secondary_max_days,
+        "schannep_window": swing.duration_days >= cfg.schannep_min_days
+        and float(swing.amplitude_pct) >= cfg.schannep_min_pct,
+        "retrace_in_third_two_thirds": r is not None and _THIRD <= r <= _TWO_THIRDS,
+        "retrace_in_third_half": r is not None and _THIRD <= r <= _HALF,
+    }
+
+
+def compute_secondary_metrics(
+    swings: Sequence[Swing], swing_cfg: SwingConfig | None = None
+) -> list[Swing]:
+    """Fill ``amplitude_pct``, ``duration_days``, ``retrace_ratio`` and (given a config) flags."""
     out: list[Swing] = []
     for k, s in enumerate(swings):
         prev = swings[k - 1] if k else None
@@ -292,15 +337,22 @@ def compute_secondary_metrics(swings: Sequence[Swing]) -> list[Swing]:
             prev_leg = abs(swings[k - 1].price - swings[k - 2].price)
             if prev_leg:
                 retrace = (abs(s.price - swings[k - 1].price) / prev_leg).quantize(_RATIO_Q)
-        out.append(
-            replace(
-                s,
-                amplitude_pct=_amplitude(s.price, prev.price if prev else None),
-                duration_days=(s.ts - prev.ts).days if prev else 0,
-                retrace_ratio=retrace,
-            )
+        filled = replace(
+            s,
+            amplitude_pct=_amplitude(s.price, prev.price if prev else None),
+            duration_days=(s.ts - prev.ts).days if prev else 0,
+            retrace_ratio=retrace,
         )
+        if swing_cfg is not None:
+            filled = replace(filled, flags=secondary_flags(filled, swing_cfg))
+        out.append(filled)
     return out
+
+
+def secondary_pct_for(cfg: DowConfig, symbol: str | None) -> float:
+    """Secondary threshold: the per-symbol override when configured, else the default."""
+    sw = cfg.swings
+    return sw.per_symbol_secondary_pct.get(symbol, sw.secondary_pct) if symbol else sw.secondary_pct
 
 
 def detect_multiscale(
@@ -308,15 +360,19 @@ def detect_multiscale(
     cfg: DowConfig,
     high: pd.Series | None = None,
     low: pd.Series | None = None,
+    *,
+    symbol: str | None = None,
 ) -> dict[str, list[Swing]]:
     """Detect minor and secondary swings with the configured method.
 
-    The secondary scale widens the minor parameters by ``secondary_pct / minor_pct``
-    (``atr_mult`` scaled, ``pivot_n`` scaled and rounded). The secondary list is snapped
-    onto the minor swings and has its metrics filled.
+    The secondary scale uses ``per_symbol_secondary_pct[symbol]`` when present, applies the
+    ``secondary_min_sessions`` causal filter (pct/atr), and widens the minor parameters by
+    ``secondary_pct / minor_pct`` (``atr_mult`` scaled, ``pivot_n`` scaled and rounded). The
+    secondary list is snapped onto the minor swings and has metrics and flags filled.
     """
     sw = cfg.swings
-    ratio = sw.secondary_pct / sw.minor_pct
+    sec_pct = secondary_pct_for(cfg, symbol)
+    ratio = sec_pct / sw.minor_pct
     common = {"method": sw.method, "atr_window": sw.atr_window, "high": high, "low": low}
     minor = detect_swings(
         close,
@@ -328,11 +384,12 @@ def detect_multiscale(
     )
     secondary = detect_swings(
         close,
-        threshold=sw.secondary_pct,
+        threshold=sec_pct,
         atr_mult=sw.atr_mult * ratio,
         pivot_n=max(1, round(sw.pivot_n * ratio)),
         scale="secondary",
+        min_sessions=sw.secondary_min_sessions,
         **common,  # type: ignore[arg-type]
     )
     nested, _flags = nest_scales(minor, secondary)
-    return {"minor": minor, "secondary": compute_secondary_metrics(nested)}
+    return {"minor": minor, "secondary": compute_secondary_metrics(nested, sw)}

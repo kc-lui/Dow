@@ -78,3 +78,14 @@ def test_defense_line_from_state():
         "agent_defined": True,
     }
     assert defense_line_from_state(SimpleNamespace(defense_line=None)) is None
+
+
+def test_side_filter_keeps_resistance_above_and_support_below(make_swing):
+    highs = [make_swing(i, p, "H") for i, p in enumerate([90, 90.2, 120, 120.3])]
+    lows = [make_swing(i, p, "L") for i, p in enumerate([90, 90.2, 120, 120.3])]
+    res = cluster_levels(highs, "H", ref_price=100, side_filter=True)
+    sup = cluster_levels(lows, "L", ref_price=100, side_filter=True)
+    assert [lv.price > 100 for lv in res] == [True]
+    assert [lv.price < 100 for lv in sup] == [True]
+    with pytest.raises(ValueError):
+        cluster_levels(highs, "H", side_filter=True)

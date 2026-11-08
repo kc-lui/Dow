@@ -64,6 +64,7 @@ def cluster_levels(
     min_touches: int = 2,
     max_levels: int = 4,
     ref_price: Decimal | float | None = None,
+    side_filter: bool = False,
 ) -> list[Level]:
     """Cluster swing prices of one kind into support (``L``) or resistance (``H``) zones.
 
@@ -73,6 +74,9 @@ def cluster_levels(
     the members' min/max, widened to at least +/- tolerance/2 around the mean so that it is
     visible. Clusters with fewer than ``min_touches`` members are dropped. The ``max_levels``
     clusters closest to ``ref_price`` are kept (most touches first when no reference).
+    With ``side_filter`` (needs ``ref_price``) only swing highs at or above the reference
+    (resistance) or swing lows at or below it (support) are clustered, so resistance is
+    never reported below the current price.
 
     Raises:
         ValueError: if ``kind`` is not one of ``H``/``L``/``resistance``/``support``.
@@ -84,7 +88,19 @@ def cluster_levels(
     else:
         raise ValueError(f"kind must be H/L/support/resistance, got {kind!r}")
 
-    pts = sorted(((s.price, s.ts) for s in swings if s.kind == wanted), key=lambda p: p[0])
+    if side_filter and ref_price is None:
+        raise ValueError("side_filter requires ref_price")
+    ref = _dec(ref_price) if ref_price is not None else None
+
+    def on_side(price: Decimal) -> bool:
+        if not side_filter or ref is None:
+            return True
+        return price >= ref if wanted == "H" else price <= ref
+
+    pts = sorted(
+        ((s.price, s.ts) for s in swings if s.kind == wanted and on_side(s.price)),
+        key=lambda p: p[0],
+    )
     if not pts:
         return []
 
@@ -119,8 +135,7 @@ def cluster_levels(
             )
         )
 
-    if ref_price is not None:
-        ref = _dec(ref_price)
+    if ref is not None:
         levels.sort(key=lambda lv: (abs(lv.price - ref), -lv.touches))
     else:
         levels.sort(key=lambda lv: (-lv.touches, lv.price))

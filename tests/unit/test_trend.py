@@ -23,6 +23,7 @@ from dowtheory.trend import (
     Signal,
     TrendStateMachine,
     run_trend,
+    warmup_note,
 )
 
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "dji_sample.csv"
@@ -81,7 +82,7 @@ def test_bull_established_by_hl_then_hh() -> None:
     sig = feed(m, BULL_START)
     st = m.state
     assert st.state == BULL_PRIMARY and st.since == day(33)
-    assert kinds(sig) == ["HL", "HH"]
+    assert kinds(sig) == ["HL", "HH", "TREND_ESTABLISHED"]
     assert (st.defense_line, st.defense_line_ts, st.defense_line_kind) == (
         Decimal(110), day(20), "reaction_low")
     assert st.secondary_direction == "down" and st.last_H.price == 130 and st.prev_H.price == 120
@@ -107,7 +108,7 @@ def test_bear_established_by_lh_and_ll() -> None:
     sig = feed(m, BEAR_START)
     st = m.state
     assert st.state == BEAR_PRIMARY and st.since == day(33)
-    assert kinds(sig) == ["LH", "LL"]
+    assert kinds(sig) == ["LH", "LL", "TREND_ESTABLISHED"]
     assert (st.defense_line, st.defense_line_ts, st.defense_line_kind) == (
         Decimal(120), day(20), "reaction_high")
     assert st.secondary_direction == "up"
@@ -216,7 +217,7 @@ def test_bear_suspect_returns_to_primary_on_new_low() -> None:
 def test_signals_use_confirmation_bar_and_carry_level() -> None:
     m = machine()
     sig = feed(m, BULL_START)
-    hh = sig[-1]
+    hh = next(x for x in sig if x.kind == "HH")
     assert (hh.idx, hh.ts, hh.price, hh.level) == (33, day(33), Decimal(130), Decimal(120))
     assert not hh.agent_defined
 
@@ -293,3 +294,83 @@ def test_dji_fixture_trend_smoke(capsys: pytest.CaptureFixture[str]) -> None:
           f"since={final.since} defense={final.defense_line} signals={counts}")
     assert len(snaps) == len(df) and final.state in {
         UNDEFINED, BULL_PRIMARY, BEAR_PRIMARY, BULL_SUSPECT, BEAR_SUSPECT}
+
+
+# --------------------------------------------------------------------------- amendments A2-A4
+def test_trend_established_signal_and_warmup_note() -> None:
+    m = machine()
+    sig = feed(m, BULL_START)
+    est = sig[-1]
+    assert est.kind == "TREND_ESTABLISHED" and not est.agent_defined
+    assert (est.idx, est.price, est.level) == (33, Decimal("118.0000"), Decimal(110))
+    assert "BULL_PRIMARY" in est.note
+    note = warmup_note(sig, day(0))
+    assert str(day(33)) in note and "BULL_PRIMARY" in note and "data start" in note
+    assert "UNDEFINED" in warmup_note([], day(0))
+    # established only once per run
+    assert kinds(feed(m, [(43, 130.0, [sw(40, "L", 115, 43)])])) == ["HL"]
+
+
+def test_equal_swings_emit_no_labels_and_do_not_establish() -> None:
+    m = machine()
+    sig = feed(m, [(3, 105.0, [sw(0, "H", 120, 3)]), (13, 108.0, [sw(10, "L", 100, 13)]),
+                   (23, 105.0, [sw(20, "H", 120.4, 23)]), (33, 108.0, [sw(30, "L", 100.3, 33)])])
+    assert sig == [] and m.state.state == UNDEFINED
+    out = machine()
+    feed(out, BULL_START)
+    assert out.state.state == BULL_PRIMARY
+
+
+def test_equal_high_in_bull_is_double_top_counter_swing() -> None:
+    m = machine()
+    feed(m, BULL_START + [(43, 130.0, [sw(40, "L", 115, 43)])])
+    sig = feed(m, [(53, 125.0, [sw(50, "H", 130.5, 53)])])  # within 0.5 % of 130
+    assert sig == [] and m.state.state == BULL_SUSPECT
+    sig = feed(m, [(54, 114.0, [])])
+    assert kinds(sig) == ["REVERSAL_DOWN"] and m.state.state == BEAR_PRIMARY
+
+
+def test_equal_low_in_bull_changes_nothing() -> None:
+    m = machine()
+    feed(m, BULL_START + [(43, 130.0, [sw(40, "L", 115, 43)])])
+    sig = feed(m, [(53, 130.0, [sw(50, "L", 115.3, 53)])])
+    assert sig == [] and m.state.state == BULL_PRIMARY and m.state.defense_line == 115
+
+
+def test_equal_low_in_bear_is_double_bottom_counter_swing() -> None:
+    m = machine()
+    feed(m, BEAR_START + [(43, 100.0, [sw(40, "H", 115, 43)])])
+    assert kinds(feed(m, [(53, 108.0, [sw(50, "L", 100.2, 53)])])) == []
+    assert m.state.state == BEAR_SUSPECT
+    assert kinds(feed(m, [(54, 116.0, [])])) == ["REVERSAL_UP"]
+
+
+def test_zero_tolerance_restores_strict_labels() -> None:
+    base = DowConfig()
+    m = TrendStateMachine(DowConfig(trend=replace(base.trend, equal_extreme_tol=0.0)))
+    feed(m, BULL_START + [(43, 130.0, [sw(40, "L", 115, 43)])])
+    assert kinds(feed(m, [(53, 125.0, [sw(50, "H", 130.5, 53)])])) == ["HH"]
+
+
+def test_suspect_via_break_returns_to_primary_with_refreshed_defense() -> None:
+    m = machine()
+    feed(m, BULL_START)
+    feed(m, [(40, 109.0, [])])  # DEFENSE_BREAK without LH -> BULL_SUSPECT, stale line 110
+    assert m.state.state == BULL_SUSPECT
+    feed(m, [(53, 112.0, [sw(50, "L", 105, 53)])])  # LL recorded, no state change
+    assert m.state.state == BULL_SUSPECT and m.state.last_L.price == 105
+    sig = feed(m, [(63, 135.0, [sw(60, "H", 140, 63)])])
+    assert kinds(sig) == ["HH"] and m.state.state == BULL_PRIMARY
+    assert (m.state.defense_line, m.state.defense_line_ts) == (Decimal(105), day(50))
+
+
+def test_bear_suspect_returns_to_primary_with_refreshed_defense() -> None:
+    m = machine()
+    feed(m, BEAR_START)
+    feed(m, [(40, 121.0, [])])
+    assert m.state.state == BEAR_SUSPECT
+    feed(m, [(53, 118.0, [sw(50, "H", 125, 53)])])  # HH recorded, still suspect
+    assert m.state.state == BEAR_SUSPECT
+    sig = feed(m, [(63, 90.0, [sw(60, "L", 90, 63)])])
+    assert kinds(sig) == ["LL"] and m.state.state == BEAR_PRIMARY
+    assert (m.state.defense_line, m.state.defense_line_kind) == (Decimal(125), "reaction_high")

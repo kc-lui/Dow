@@ -205,3 +205,90 @@ def test_dji_fixture_smoke(capsys: pytest.CaptureFixture[str]) -> None:
         assert len(res["minor"]) > 0
         assert len(res["secondary"]) > 0
     assert "pct: minor=" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------- amendments A1, A5
+def _flip_flop() -> pd.Series:
+    """Legs of 3 bars of +-10 %: every flip is quick, so a session filter must suppress some."""
+    return _sawtooth([100, 110, 99, 109, 98, 108, 97, 107], leg=3)
+
+
+def test_min_sessions_defers_flips_causally() -> None:
+    close = _flip_flop()
+    free = detect_swings(close, threshold=0.05)
+    slow = detect_swings(close, threshold=0.05, min_sessions=7)
+    assert len(slow) < len(free)
+    assert all(b.confirmed_idx - a.idx >= 7 for a, b in itertools.pairwise(slow))
+
+
+@pytest.mark.parametrize("method", ["pct", "atr"])
+@pytest.mark.parametrize("seed", [31, 32, 33])
+def test_truncation_invariance_with_min_sessions(method: str, seed: int) -> None:
+    df = _walk(seed, n=360)
+    kw = {"min_sessions": 12}
+    full = _detect(df, method, **kw)
+    assert all(a.kind != b.kind for a, b in itertools.pairwise(full))
+    for t in list(range(5, 360, 9)) + [359]:
+        part = _detect(df.iloc[: t + 1], method, **kw)
+        assert swings_as_of(part, t) == swings_as_of(full, t), f"{method} t={t}"
+
+
+def test_multiscale_truncation_invariance_with_defaults() -> None:
+    df = _walk(41, n=500, vol=0.014)
+    cfg = DowConfig()
+    full = detect_multiscale(df["close"], cfg)["secondary"]
+    for t in range(30, 500, 41):
+        part = detect_multiscale(df["close"].iloc[: t + 1], cfg)["secondary"]
+        # metrics and flags only look backwards, so equality must hold bar for bar
+        assert swings_as_of(part, t) == swings_as_of(full, t), f"t={t}"
+
+
+def test_per_symbol_secondary_pct_override() -> None:
+    from dataclasses import replace
+
+    df = _walk(9, n=900, vol=0.015)
+    base = DowConfig()
+    cfg = DowConfig(swings=replace(base.swings, per_symbol_secondary_pct={"^DJT": 0.20}))
+    default = detect_multiscale(df["close"], cfg)["secondary"]
+    same = detect_multiscale(df["close"], cfg, symbol="^DJI")["secondary"]
+    wide = detect_multiscale(df["close"], cfg, symbol="^DJT")["secondary"]
+    assert same == default
+    assert len(wide) < len(default)
+
+
+def test_secondary_flags_follow_config_and_never_filter() -> None:
+    from dataclasses import replace
+
+    chain = [_mk(0, "L", "100", 1), _mk(30, "H", "150", 31), _mk(50, "L", "125", 51),
+             _mk(80, "H", "160", 81), _mk(84, "L", "158", 85)]
+    out = compute_secondary_metrics(chain, DowConfig().swings)
+    assert len(out) == len(chain)
+    assert out[0].flags == {"rhea_window": False, "schannep_window": False,
+                            "retrace_in_third_two_thirds": False, "retrace_in_third_half": False}
+    assert out[1].flags["rhea_window"] and out[1].flags["schannep_window"]  # 30 d, +50 %
+    assert out[2].flags["retrace_in_third_half"] and out[2].flags["retrace_in_third_two_thirds"]
+    assert out[2].flags["rhea_window"] is False
+    assert out[3].retrace_ratio == Decimal("1.400000")
+    assert not out[3].flags["retrace_in_third_two_thirds"]
+    assert out[4].flags["schannep_window"] is False  # 4 d, 1.3 %
+    custom = replace(DowConfig().swings, secondary_min_days=20)
+    assert compute_secondary_metrics(chain, custom)[2].flags["rhea_window"] is True
+
+
+def test_retrace_flag_boundaries() -> None:
+    sw = DowConfig().swings
+    def flags(price: str) -> dict[str, bool]:
+        chain = [_mk(0, "L", "100", 1), _mk(30, "H", "160", 31), _mk(60, "L", price, 61)]
+        return compute_secondary_metrics(chain, sw)[2].flags
+    assert flags("120") == {**flags("120"), "retrace_in_third_half": False,
+                            "retrace_in_third_two_thirds": True}  # 40/60 = 0.667
+    assert flags("130")["retrace_in_third_half"]  # 0.5
+    assert not flags("150")["retrace_in_third_two_thirds"]  # 0.167
+
+
+def test_flags_present_on_multiscale_secondary_only() -> None:
+    df = _walk(5, n=900, vol=0.015)
+    res = detect_multiscale(df["close"], DowConfig())
+    assert all(set(s.flags) == {"rhea_window", "schannep_window", "retrace_in_third_two_thirds",
+                                "retrace_in_third_half"} for s in res["secondary"])
+    assert all(s.flags == {} for s in res["minor"])

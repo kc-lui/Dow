@@ -42,6 +42,9 @@ def to_markdown(result: AnalysisResult) -> str:
         "## Trend state",
         "",
     ]
+    if m.get("warmup_note"):
+        lines.insert(-2, f"Warm-up note: {m['warmup_note']}")
+        lines.insert(-2, "")
     dl = ts.get("defense_line")
     rows = [
         ["Primary trend", f"{ts['primary']} since {ts['since'] or '-'}"],
@@ -77,6 +80,8 @@ def to_markdown(result: AnalysisResult) -> str:
         for name in ("support", "resistance") for lv in result.levels[name]
     ]
     lines += _table(["Type", "Price", "Zone", "Touches"], lv_rows)
+    if m.get("levels_note"):
+        lines += [f"Note: {m['levels_note']}", ""]
     tl_rows = [
         [f"{t['kind']}trend", f"{t['p0'][0]} @ {_fmt(t['p0'][1])}",
          f"{t['p1'][0]} @ {_fmt(t['p1'][1])}", _fmt(t["slope_per_day"], 3),
@@ -87,12 +92,12 @@ def to_markdown(result: AnalysisResult) -> str:
 
     lines += [f"## Lines ({len(result.lines)}; last {MAX_LINES_SHOWN} shown)", ""]
     lines += _table(
-        ["Start", "End", "Band A %", "Band B %", "Breakout", "Both confirm"],
+        ["Start", "End", "Band A %", "Band B %", "Breakout", "Confirmed (both)"],
         [
             [str(x["start"]), str(x["end"]), _fmt(x["band_pct_a"] * 100, 1),
              _fmt(x["band_pct_b"] * 100, 1),
              x["breakout"] + (f" {x['breakout_ts']}" if x["breakout_ts"] else ""),
-             "yes" if x["confirmed_both"] else "no"]
+             str(x["confirmed_ts"]) if x.get("confirmed_ts") else "pending"]
             for x in result.lines[-MAX_LINES_SHOWN:]
         ],
     )
@@ -105,10 +110,11 @@ def to_markdown(result: AnalysisResult) -> str:
         "",
     ]
     lines += _table(
-        ["Date", "Kind", "Price", "Level", "Agent-defined", "Confirmation", "Note"],
+        ["Date", "Kind", "Price", "Level", "Agent-defined", "Confirmation", "Confirmed on", "Note"],
         [
             [str(s["ts"]), s["kind"], _fmt(s["price"]), _fmt(s["level"]),
-             "yes" if s["agent_defined"] else "no", s["confirmation"], s["note"]]
+             "yes" if s["agent_defined"] else "no", s["confirmation"],
+             str(s.get("confirmed_ts") or "-"), s["note"]]
             for s in trend_signals[-MAX_SIGNALS_SHOWN:]
         ],
     )

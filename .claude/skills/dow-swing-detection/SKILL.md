@@ -2,10 +2,9 @@
 name: dow-swing-detection
 description: >-
   Dow project swing layer: detects confirmed swing highs and lows (波段高低點, 轉折點) on
-  closing prices, at minor and secondary scale, by percentage zig-zag (Rhea
-  3 percent default), ATR multiple or N-bar pivot, with strict H/L alternation, a confirmed_idx per
-  swing (no lookahead), the causal 15-session secondary filter, and literature flags (Rhea window,
-  Schannep window, retracement bands) that annotate but never filter. Use when asked to list
+  closing prices at minor and secondary scale by percentage zig-zag (Rhea 3 percent default), ATR
+  multiple or N-bar pivot, with strict H/L alternation, a confirmed_idx per swing (no lookahead), the
+  causal 15-session secondary filter, and literature flags that annotate but never filter. Use when asked to list
   swings, zigzag or pivot points, ATR swings, the 3% filter, higher highs and lower lows, 次要趨勢 or
   小型趨勢 swings, when a swing was confirmed, why a correction is or is not a secondary swing, a leg's amplitude, duration or
   retrace, or how minor and secondary scales nest. Not covered: source statements and label
@@ -40,7 +39,7 @@ Do not use it to classify the trend, draw the defense line, cluster levels, dete
 
 2. **Data access.** Two sources, chosen with `--source`:
    - `clickhouse` (default): table `dow.mkt_klines`, daily bars, read with `FINAL`, through the scoped `dow_user` login (`DOW_CLICKHOUSE_USER` / `DOW_CLICKHOUSE_PASSWORD`, host and port from `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT`). ClickHouse runs only in Docker (container `trading_clickhouse`). The `usstock` and `twstock` databases are read-only and are not touched by this skill.
-   - `csv`: any file with `Date` (or `ts_open`), `Open`, `High`, `Low`, `Close`, `Volume` columns, for example `../../../tests/fixtures/dji_sample.csv`. `--symbol` is required for ClickHouse; for CSV it defaults to the upper-cased file stem (`DJI_SAMPLE` for the fixture) and only labels the output, filters an optional `symbol` column and selects a per-symbol threshold.
+   - `csv`: any file with `Date` (or `ts_open`), `Open`, `High`, `Low`, `Close`, `Volume` columns, for example `../../../tests/fixtures/dji_sample.csv`. `--symbol` is required for ClickHouse; for CSV it defaults to the upper-cased file stem (`DJI_SAMPLE` for the fixture) and only labels the output, filters an optional `symbol` column and selects a per-symbol threshold. When the CSV has a `symbol` column, pass `--symbol` explicitly, otherwise the stem default filters to zero rows.
 3. **`analysis_start` clipping.** `load_klines` clips close-only history (bars with open = high = low = close) to `data.analysis_start[symbol]` from `../../../configs/dow.yaml`; only `^GSPC` and `^IXIC` have a floor. Set `DOW_IGNORE_ANALYSIS_START=1` to disable. ATR needs real high/low, so never disable it for the `atr` method.
 4. **Integrity gate.** Before any ClickHouse-based analysis run `.venv/bin/python scripts/check_integrity.py` from the project root (`dow check` is the same gate) and require exit 0. The gate checks coverage, gaps, duplicates, exchange conflicts, OHLC sanity, flat bars, zero volume and staleness, and logs to `dow.ops_data_quality_log`. The CSV fixture needs no gate.
 5. **Siblings for definitions.** Term meanings and label semantics: `dow-theory-sources` Step 1 and Step 2. Rule ids `R-0xx` refer to `../../../research/canonical_rules.md`.
@@ -172,7 +171,7 @@ Real output on 2026-11-08 (data through 2026-11-06):
 5 swings | ^DJI | bars 716 2024-01-02 -> 2026-11-06 | method pct minor 0.03 secondary 0.08 min_sessions 15
 ```
 
-Reading: the 2025-04-08 low became knowable on 2025-04-30, 16 sessions later (`R-046` 【agent-defined】 threshold and filter), when the rebound exceeded the secondary threshold and the time filter had elapsed; its retrace ratio 0.951 says it gave back almost the whole prior up-leg, so it sits outside every retracement band and only the Schannep flag is true. The 2026-03-27 low is the one secondary swing in this window inside the Rhea window and both retracement bands. The first row is an artefact of the window start: a long up-leg began before 2024-01-01, so the first swing has no previous swing and was confirmed only in July. The full history (no `--start`) yields 450 minor and 84 secondary swings over 8775 bars from 1992-01-02, 【agent-defined】 count from this project's data. All thresholds behind these rows are `R-046` 【agent-defined】.
+Reading: the 2025-04-08 low became knowable on 2025-04-30, 15 sessions later (`R-046` 【agent-defined】 threshold and filter), when the rebound exceeded the secondary threshold and the time filter had elapsed; its retrace ratio 0.951 says it gave back almost the whole prior up-leg, so it sits outside every retracement band and only the Schannep flag is true. The 2026-03-27 low is the one secondary swing in this window inside the Rhea window and both retracement bands. The first row is an artefact of the window start: a long up-leg began before 2024-01-01, so the first swing has no previous swing and was confirmed only in July. The full history (no `--start`) yields 450 minor and 84 secondary swings over 8775 bars from 1992-01-02, 【agent-defined】 count from this project's data. All thresholds behind these rows are `R-046` 【agent-defined】.
 
 ### Example 3: same fixture, pivot method, secondary only
 
@@ -210,7 +209,7 @@ Swing definitions, detector parameters, `confirmed_idx` semantics, nesting and f
 5. **Schannep flag unit mismatch.** `schannep_min_days` is compared with calendar `duration_days`, while Schannep's 8-day figure counts trading days; the flag is looser than the source, 【agent-defined】 approximation under `R-046`, and a candidate contract amendment (count sessions).
 6. **Data start.** The project's ClickHouse history for `^DJI` and `^DJT` begins 1992-01-02; nothing before that is analysed, so the earlier regimes studied by Cowles or Brown, Goetzmann and Kumar are out of reach.
 7. **First swing and window edges.** The first swing has no amplitude, duration or retrace, and its confirmation can arrive long after `--start` (Example 2). The last candidate extreme is never emitted until the market confirms it.
-8. **Flags are weak discriminators.** In the review table at most 46 percent of reactions fall in the 1/3 to 2/3 band at any threshold, 【agent-defined】 project analysis, and the backtest data label for both duration and retracement is 【insufficient-evidence】 (Step 5); treat flags as descriptive.
+8. **Flags are weak discriminators.** In the Step 4 table at most 49 percent of reactions fall in the 1/3 to 2/3 band at any threshold, 【agent-defined】 project analysis, and the backtest data label for both duration and retracement is 【insufficient-evidence】 (Step 5); treat flags as descriptive.
 9. **Pivot lookahead is explicit, not absent.** A pivot is knowable only n bars later; `confirmed_idx = i + n` encodes that. Comparing pivot and percentage swings by `ts` alone hides the different confirmation lags.
 10. **Not advice.** The skill reports where swings occurred and when they were knowable. It makes no price prediction and gives no investment advice.
 

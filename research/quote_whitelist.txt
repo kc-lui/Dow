@@ -1,0 +1,4 @@
+# Phrases of 4+ words that appear in double quotes in scanned markdown but are not
+# source quotes (names, terms of art, field values). One per line, exact text
+# (curly quotes/dashes/whitespace normalised), case-sensitive. Short spans (< 4 words)
+# never need listing.

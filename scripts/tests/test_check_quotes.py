@@ -41,10 +41,10 @@ def test_failures(name, kind, fragment, capsys):
 
 def test_default_globs_in_root(tmp_path, capsys):
     (tmp_path / "research" / "sources").mkdir(parents=True)
-    (tmp_path / "analysis").mkdir()
-    (tmp_path / "analysis" / "a.md").write_text('He said "one two three four five" here.\n')
+    (tmp_path / ".claude" / "agents").mkdir(parents=True)
+    (tmp_path / ".claude" / "agents" / "a.md").write_text('He said "one two three four five" here.\n')
     assert check_quotes.main(["--root", str(tmp_path)]) == 1
-    assert "analysis/a.md:1" in capsys.readouterr().out
+    assert ".claude/agents/a.md:1" in capsys.readouterr().out
 
 
 def test_canonical_rules_not_in_default_scan():

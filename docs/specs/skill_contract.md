@@ -1,0 +1,14 @@
+# Skill content contract (applies to every `.claude/skills/dow-*/`)
+
+Mirrors `../HD/.claude/skills/hd-indicator-stack/SKILL.md` structure; reviewed by `~/.claude/skills/dual-axis-skill-reviewer`.
+
+1. **Frontmatter**: only `name` and `description`. Description = one paragraph: what the skill does, then `Use when …` triggers (English, plus the Chinese terms 道氏理論 / 道氏防線 / 支撐線 / 壓力線 / 主要趨勢 / 次要趨勢 / 小型趨勢 where relevant), then `Not covered: X → dow-<sibling>; …`.
+2. **H1** `# dow-<name>: <title>` and a blockquote preamble stating: source of knowledge (literature synthesis `research/canonical_rules.md` from 43 source notes; and/or `src/dowtheory` code), the label vocabulary, "not investment advice", "describes trend state, never predicts prices".
+3. **Exactly these H2 sections in order**: `## When to Use`, `## Prerequisites`, `## Workflow`, `## Output`, `## Examples` (≥2 worked examples; for script skills, real command + abbreviated real output from this repo), `## Boundaries` (table: not covered → sibling skill), `## Limitations`, `## Resources`.
+4. **Labels**: every quantitative statement carries exactly one literature label `【literature-consensus】【literature-disputed】【single-source】【agent-defined】` and, where a backtest exists, one data label `【data-confirmed】【data-refuted】【insufficient-evidence】`; cite `R-0xx` ids from canonical_rules.md. Disputed figures are listed side by side with their sources; never adjudicated. `scripts/check_labels.py` enforces this.
+5. **Quotes**: double quotes `"…"` are reserved for verbatim source text and must carry `(slug:Qn)`; `scripts/check_quotes.py` verifies each against `research/sources/<slug>.md`. Paraphrase uses no quotation marks.
+6. **Paths**: relative only. Project root anchor is `../../../` from the skill directory; for scripts, `scripts/_anchor.py` resolves `DOW_PROJECT_ROOT`. No `/Users/` anywhere.
+7. **Scripts** (script skills): `scripts/<cmd>.py` thin wrappers (≤ 60 lines) importing `dowtheory`; `tests/test_cli.py` runs them on `tests/fixtures/dji_sample.csv` with `--source csv`; a `## Prerequisites` subsection shows the one-line global-install setup `export DOW_PROJECT_ROOT=<path-to-Dow-repo>`.
+8. **references/evidence.md**: every quote and rule id used in SKILL.md, grouped by Workflow step, with slug:Qn and URL.
+9. **DRY**: definitions live in one skill only (glossary and labels in `dow-theory-sources`; swing definitions in `dow-swing-detection`; state machine and defense line in `dow-trend-classification`; line and confirmation in `dow-confirmation-and-line`; levels and chart in `dow-levels-and-chart`; backtest results in `dow-rule-backtest`). Siblings reference, never restate. `analysis/skill_boundary_ledger.md` records coverage after each pass.
+10. **Language**: English. Chinese only as trigger terms in the description and a one-line glossary mapping in `dow-theory-sources`.

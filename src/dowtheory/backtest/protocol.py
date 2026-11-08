@@ -104,13 +104,16 @@ def sha256_file(path: Path) -> str:
 
 
 def scoped_sha256(path: Path) -> str:
-    """Hash of the text above the ``PROTOCOL-HASH-SCOPE`` line (as the table defines it)."""
+    """Hash of the text above the ``PROTOCOL-HASH-SCOPE:`` marker line.
+
+    The marker is anchored at the start of a line; the prose mention in the table header
+    must not count (R11 finding F3).
+    """
     text = path.read_text(encoding="utf-8")
-    cut = text.find(SCOPE_MARKER)
-    if cut < 0:
-        raise ValueError(f"{path}: no {SCOPE_MARKER} line")
-    cut = text.rfind("\n", 0, cut) + 1
-    return hashlib.sha256(text[:cut].encode("utf-8")).hexdigest()
+    m = re.search(r"^" + SCOPE_MARKER + ":", text, flags=re.MULTILINE)
+    if m is None:
+        raise ValueError(f"{path}: no line starting with {SCOPE_MARKER}:")
+    return hashlib.sha256(text[: m.start()].encode("utf-8")).hexdigest()
 
 
 def protocol_paths(root: Path | None = None) -> tuple[Path, Path]:
@@ -168,3 +171,26 @@ def printed_caveats(table_text: str) -> dict[str, list[str]]:
             cells = [c.strip() for c in line.strip().strip("|").split("|", 1)]
             out.setdefault(rule, []).append(cells[1].strip().strip('"'))
     return out
+
+
+R1_CAVEAT = (
+    "Mandatory caveat for any citation of R1 `data-confirmed` (R11 audit F1): the 0.5 null is "
+    "not a random-walk baseline. A drift-matched random walk run through the same machinery "
+    "gives p_extend of about 0.65 to 0.69 (auditor: iid 0.654, zero drift 0.633, block bootstrap "
+    "0.695, with P(>= 0.8788) of about 0.0005, 0.0005 and 0.0085). The harness random-walk p is "
+    "p_sim = {p_sim}. Cite the baseline 0.65 to 0.69, p_sim and n = 33; never p_holm alone."
+)
+EXPLORATORY_NOTE = (
+    "exploratory: the single-group classification uses information up to c+h (R11 F4)"
+)
+EXPLORATORY_VARIANTS: dict[str, tuple[str, ...]] = {
+    "R3": ("primary", "horizon120", "horizon20", "max_days90", "hit_rate_diff"),
+    "R6": ("single", "conf_minus_single"),
+}
+VOLUME_CORRECTION = (
+    "Correction (R11 audit): `^DJI` volume is positive on every bar since 1992. What exists is "
+    "a level break (annual mean 21 to 99 million shares in 1992-1999 against about 205 million "
+    "in 2000) and a second break in 2016/2017 (about 117 against 311 million), which lies inside "
+    "R7's sample. The 2000 start stays as pre-registered; only the normalised variant partly "
+    "handles the 2016/2017 break."
+)

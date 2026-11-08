@@ -31,14 +31,18 @@ Line breakouts confirmed by both averages (event bar `confirmed_ts`). Metric: sh
 
 - No label: `SP_IYT` is a robustness pair (labels come from `DJ` only).
 
+### Exploratory rows (R11 F4)
+
+For the `single` and `conf_minus_single` rows, the single group is classified with information up to `c + h`, the outcome window itself, and a reversal matched later than `c + h` is in both groups. Treat these rows as exploratory; the label is unchanged (recommended redefinition for v3 in `analysis/protocol_deviations.md`).
+
 ## Descriptive and robustness rows
 
 | spec | variant | metric | horizon | n | value | CI low | CI high | p raw | notes |
 |---|---|---|---|---|---|---|---|---|---|
 | pct0.03/0.08f15 | horizon60 | agree | h60 | 50 | 0.4400 | 0.3116 | 0.5769 | 0.8389 |  |
 | pct0.03/0.08f15 | horizon120 | agree | h120 | 50 | 0.4800 | 0.3480 | 0.6149 | 0.6641 |  |
-| pct0.03/0.08f15 | single | agree | h20 | 17 | 0.2353 | 0.0956 | 0.4726 | 0.9936 |  |
-| pct0.03/0.08f15 | conf_minus_single | agree_diff | h20 | 67 | 0.3047 | n/a | n/a | 0.0365 | groups confirmed=50 single=17 |
+| pct0.03/0.08f15 | single | agree | h20 | 17 | 0.2353 | 0.0956 | 0.4726 | 0.9936 | exploratory: the single-group classification uses information up to c+h (R11 F4) |
+| pct0.03/0.08f15 | conf_minus_single | agree_diff | h20 | 67 | 0.3047 | n/a | n/a | 0.0365 | groups confirmed=50 single=17; exploratory: the single-group classification uses information up to c+h (R11 F4) |
 | pct0.03/0.08f15 | excess | mean_excess_logret | h20 | 50 | 0.0035 | -0.0138 | 0.0240 | 0.2874 |  |
 | pct0.03/0.08f15 | sub_A | agree | h20 | 28 | 0.5714 | n/a | n/a | n/a | sub-sample split 2015-12-31 |
 | pct0.03/0.08f15 | sub_B | agree | h20 | 22 | 0.5000 | n/a | n/a | n/a | sub-sample split 2015-12-31 |
@@ -94,3 +98,5 @@ Range of the primary metric over 32 grid points (not a selected optimum): min 0.
 - Price indices exclude dividends (R8 caveat). The `^DJI` series is yfinance-sourced; vendor revisions after 2026-11-06 do not change the frozen `period_end` of label-driving runs.
 - Forward windows overlap at `h = 60` and `h = 120`; effective sample sizes are smaller than `n`; the number of event clusters is reported next to `n` for every return-based row.
 - The primary threshold was selected on this sample (1.8); R4 and R5 labels are therefore computed under the worst-grid-point rule and every R4/R5 report prints the full threshold range.
+
+Correction (R11 audit): `^DJI` volume is positive on every bar since 1992. What exists is a level break (annual mean 21 to 99 million shares in 1992-1999 against about 205 million in 2000) and a second break in 2016/2017 (about 117 against 311 million), which lies inside R7's sample. The 2000 start stays as pre-registered; only the normalised variant partly handles the 2016/2017 break.

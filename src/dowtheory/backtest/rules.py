@@ -346,11 +346,10 @@ def R7(
                        [(x.date, x.with_vol > x.counter_vol) for x in pairs_n], 0.5)[0]]
     df = pd.DataFrame({"volume": objs.a.volume})
     sec = objs.a.secondary
-    flags = [volume_confirms(df, sec[k : k + 4]) for k in range(len(sec) - 3)
-             if sec[k].idx >= start_bar]
-    flags = [f for f in flags if f is not None]
-    rows.append(proportion(ctx, "volume_confirms", "share_true",
-                           [(objs.date_at(objs.last), f) for f in flags], 0.5)[0])
+    windows = [(sec[k + 3].confirmed_idx, volume_confirms(df, sec[k : k + 4]))
+               for k in range(len(sec) - 3) if sec[k].idx >= start_bar]
+    flags = [(objs.date_at(c), f) for c, f in windows if f is not None]
+    rows.append(proportion(ctx, "volume_confirms", "share_true", flags, 0.5)[0])
     return RuleOutcome(row, prim, rows, {"n_pairs": len(pairs), "n_pairs_normalised": len(pairs_n),
                                          "volume_confirms_windows": len(flags)})
 

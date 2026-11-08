@@ -147,6 +147,18 @@ def rule_report(run: BacktestRun, pr: PairRun, rule: str, protocol_text: str) ->
         ]
     else:
         lines.append(f"- No label: `{pr.pair}` is a robustness pair (labels come from `DJ` only).")
+    if rule == "R1":
+        sim = o.details.get("p_sim")
+        lines += ["", "### Mandatory caveat (R11 F1)", "",
+                  proto.R1_CAVEAT.format(p_sim="n/a" if sim is None else f"{sim:.4f}")]
+    if rule in proto.EXPLORATORY_VARIANTS:
+        which = ("every row of this report" if rule == "R3" else
+                 "the `single` and `conf_minus_single` rows")
+        lines += ["", "### Exploratory rows (R11 F4)", "",
+                  (f"For {which}, the single group is classified with information up to `c + h`, "
+                  "the outcome window itself, and a reversal matched later than `c + h` is in both "
+                  "groups. Treat these rows as exploratory; the label is unchanged "
+                  "(recommended redefinition for v3 in `analysis/protocol_deviations.md`).")]
     lines += ["", "## Descriptive and robustness rows", "", *row_table(o.rows)]
     sweep = pr.sweep_rows.get(rule, [])
     if sweep:
@@ -166,6 +178,7 @@ def rule_report(run: BacktestRun, pr: PairRun, rule: str, protocol_text: str) ->
     lines += [f"- {cav}" for cav in caveats]
     lines += ["", "### Data coverage (verbatim from the decision table, section 5)", ""]
     lines += [f"- {c}" for c in proto.coverage_caveats(protocol_text)]
+    lines += ["", proto.VOLUME_CORRECTION]
     return "\n".join(lines) + "\n"
 
 
@@ -237,6 +250,9 @@ def status_table(run: BacktestRun) -> str:
             notes.append(f"clusters={p.n_clusters}")
         notes.append(f"refute_bound={f(lab['bound'], 4)} vs null {f(p.null_value, 4)}")
         notes.append(f"lit ids {run.literature_ids.get(r) or 'none'}")
+        if r == "R1":
+            sim = o.details.get("p_sim")
+            notes.append(proto.R1_CAVEAT.format(p_sim="n/a" if sim is None else f"{sim:.4f}"))
         notes += pr.flags.get(r, [])
         cons = _consistency_note(run, r)
         if cons:

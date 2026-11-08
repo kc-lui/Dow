@@ -188,6 +188,7 @@ def run_pair(
             row.extras = {}
             outcomes[r].rows.append(row)
     run.flags = _flags(outcomes)
+    _mark_exploratory(run)
     if pair == LABEL_PAIR:
         _apply_labels(run, canonical or {})
     return run
@@ -200,10 +201,25 @@ def _apply_labels(run: PairRun, canonical: dict[str, dict[str, str]]) -> None:
         lab = run.labels[r]
         row = run.outcomes[r].primary
         row.label = lab["label"]
+        if r == "R1":
+            sim = run.outcomes["R1"].details.get("p_sim")
+            row.notes += "; r1_caveat=null 0.5 is not a random-walk baseline (baseline 0.65-0.69, "
+            row.notes += f"p_sim={'n/a' if sim is None else format(sim, '.4f')}, n={row.n_obs})"
         row.notes += (f"; p_holm={lab['p_holm']:.6f}; refute_bound={lab['bound']:.6f} "
                       f"vs null {row.null_value:.6f}")
         if r in proto.WORST_GRID_RULES:
             row.notes += f"; p_label_worst_grid={lab['p_label']:.6f}; bound_worst={lab['bound']:.6f}"
+
+
+def _mark_exploratory(run: PairRun) -> None:
+    """Tag rows whose single-group classification looks ahead to ``c + h`` (R11 F4)."""
+    for rule, variants in proto.EXPLORATORY_VARIANTS.items():
+        o = run.outcomes[rule]
+        rows = [o.primary, *o.rows, *run.sweep_rows.get(rule, [])]
+        for row in rows:
+            marked = rule == "R3" or row.variant in variants
+            if marked and proto.EXPLORATORY_NOTE not in row.notes:
+                row.notes = f"{row.notes}; {proto.EXPLORATORY_NOTE}".strip("; ")
 
 
 def _flags(outcomes: dict[str, RuleOutcome]) -> dict[str, list[str]]:
@@ -246,6 +262,7 @@ def run_backtest(
 ) -> BacktestRun:
     """Run the harness for the requested pairs; labels exist for ``DJ`` only."""
     t0 = time.time()
+    started = dt.datetime.now(dt.UTC)
     root = root or project_root()
     cfg = cfg or load_config()
     protocol = proto.load_protocol(cfg, root)
@@ -272,10 +289,12 @@ def run_backtest(
         for r in FAMILY
     }
     lit_ids = {r: canonical.get(proto.RULE_KEY[r], {}).get("ids", "") for r in FAMILY}
+    r1_sim = runs[LABEL_PAIR].outcomes["R1"].details.get("p_sim") if LABEL_PAIR in runs else None
+    notes = [] if r1_sim is None else [proto.R1_CAVEAT.format(p_sim=f"{r1_sim:.4f}")]
     return BacktestRun(
-        uuid.uuid4().hex, dt.datetime.now(dt.UTC), time.time() - t0, cfg.config_hash(),
+        uuid.uuid4().hex, started, time.time() - t0, cfg.config_hash(),
         protocol.table_hash, protocol.table_hash_scoped, latest_integrity_report(root),
-        deviations or [], protocol.n_iter, runs, literature, lit_ids, sweeps,
+        deviations or [], protocol.n_iter, runs, literature, lit_ids, sweeps, notes,
     )
 
 

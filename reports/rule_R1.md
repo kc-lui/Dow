@@ -33,6 +33,10 @@ Confirmed secondary swing counter to an established primary trend (`state(c)` BU
 - Literature label: **literature-consensus** (registry rows R-016,R-017).
 - Refutation bound actually computed: one-sided 0.99375 upper bound 0.9620 against null 0.5000; it does not lie below the null, so refutation is excluded.
 
+### Mandatory caveat (R11 F1)
+
+Mandatory caveat for any citation of R1 `data-confirmed` (R11 audit F1): the 0.5 null is not a random-walk baseline. A drift-matched random walk run through the same machinery gives p_extend of about 0.65 to 0.69 (auditor: iid 0.654, zero drift 0.633, block bootstrap 0.695, with P(>= 0.8788) of about 0.0005, 0.0005 and 0.0085). The harness random-walk p is p_sim = 0.0055. Cite the baseline 0.65 to 0.69, p_sim and n = 33; never p_holm alone.
+
 ## Descriptive and robustness rows
 
 | spec | variant | metric | horizon | n | value | CI low | CI high | p raw | notes |
@@ -79,3 +83,5 @@ Drift-matched random-walk null: p_sim = 0.0055 over 2000 paths (null mean p_exte
 - Price indices exclude dividends (R8 caveat). The `^DJI` series is yfinance-sourced; vendor revisions after 2026-11-06 do not change the frozen `period_end` of label-driving runs.
 - Forward windows overlap at `h = 60` and `h = 120`; effective sample sizes are smaller than `n`; the number of event clusters is reported next to `n` for every return-based row.
 - The primary threshold was selected on this sample (1.8); R4 and R5 labels are therefore computed under the worst-grid-point rule and every R4/R5 report prints the full threshold range.
+
+Correction (R11 audit): `^DJI` volume is positive on every bar since 1992. What exists is a level break (annual mean 21 to 99 million shares in 1992-1999 against about 205 million in 2000) and a second break in 2016/2017 (about 117 against 311 million), which lies inside R7's sample. The 2000 start stays as pre-registered; only the normalised variant partly handles the 2016/2017 break.

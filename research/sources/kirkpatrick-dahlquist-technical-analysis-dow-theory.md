@@ -49,10 +49,10 @@ Paraphrased from other snippets: the 1st ed. says Rhea claimed the primary trend
 | minor_duration | Day-to-day; one day's movement is misleading (quoting Rhea) | daily | Q5 |
 | trend_definition_hh_hl | Ideal market picture: uptrend, top, downtrend, bottom; study guide: failure of both indexes to make new highs after a secondary alerts to a possible end of the primary uptrend | — | Q3 |
 | reversal_definition | Failure of industrials and transports to make new highs after a secondary reaction signals potential end of primary uptrend (Study Guide paraphrase) | — | — |
-| line_definition | Mentioned as a formation with specific rules for the averages; definition not visible | NOT VISIBLE | — |
+| line_definition | Mentioned as a formation with specific rules for the averages; definition not visible | NOT MENTIONED (not visible in preview) | — |
 | confirmation | Industrials and rails as proxies for the economy; both must confirm | — | Q6 |
 | closing_prices_only | NOT MENTIONED in accessible fragments | NOT MENTIONED | — |
-| volume | Chapter has a section "Importance of Volume"; content not visible | NOT VISIBLE | Q2 |
+| volume | Chapter has a section "Importance of Volume"; content not visible | NOT MENTIONED (not visible in preview) | Q2 |
 | minor_move_filter | NOT MENTIONED | NOT MENTIONED | — |
 | phases_bull / phases_bear | Reproduces Rhea's three bear phases (hopes abandoned, selling on decreased earnings, distress selling) and presumably bull phases | 3 | — |
 | defense_line | NOT MENTIONED | NOT MENTIONED | — |

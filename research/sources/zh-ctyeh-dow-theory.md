@@ -15,7 +15,7 @@ WebFetch extraction. Not independently checked against raw HTML. Quotes appear i
 - Q2: "1年至數年" — 主要趨勢持續時間
 - Q3: "3週至數月" — 次要趨勢持續時間
 - Q4: "數天至3週" — 短期趨勢持續時間
-- Q5: 「主要多頭中每次10-20%回調」 — 回檔幅度 (labelled 台股參考欄位)
+- Q5: 「主多頭中每次10-20%回調」 — 回檔幅度 (labelled 台股參考欄位)
 - Q6: 「在主要多頭趨勢中，次要修正是買進機會」 — 回檔幅度
 - Q7: 「高高低低，越來越高」 — 趨勢定義
 - Q8: 「低低高高，越來越低」 — 趨勢定義

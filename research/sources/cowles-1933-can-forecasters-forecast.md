@@ -31,7 +31,7 @@ Page numbers are those of the Econometrica pagination.
 - Q18: "Applying these to the industrial averages, 16 were profitable, 13 unprofitable." — p.315
 - Q19: "He announced bearish forecasts 23 times, 10 were profitable, 13 unprofitable." — p.315
 - Q20: "He advised 38 times that funds be withdrawn from the stock market, 19 of these withdrawals being profitable, 19 unprofitable." — p.315
-- Q21: "In all, 45 of his changes of position were successful, 45 unsuccessful." — p.315
+- Q21: "In all, 45 of his changes of position were unsuccessful, 45 successful." — p.315
 - Q22: "The application of the forecasts to the railroad averages confirms these conclusions except that in this case 41 changes of position were successful and 49 unsuccessful." — p.315
 - Q23: "For the period from 1909 to 1914 inclusive, when the industrial averages displayed what, in effect, was a horizontal trend, his hypothetical fund shrank 7.8 per cent per annum below what it would have been if loaned at 5 per cent interest." — pp.315-316
 - Q24: "Since the Dow Jones averages have only recently been corrected to offset the effect of stock rights, stock dividends, and stock splits, such adjustments have been made for all the previous years on the basis of tables published by Dwight C. Rose in his book Investment Management." — p.315

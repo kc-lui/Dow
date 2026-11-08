@@ -1,0 +1,25 @@
+Integrity report 2026-11-08 06:21:14 UTC
+SUMMARY errors=0 warnings=7 info=14
+STATUS PASS
+
+[WARN ] ^DJT   zero_volume        1 zero-volume bars (1998-02-19 -> 1998-02-19)
+[WARN ] ^GSPC  gap                7 missing sessions 1933-03-06 -> 1933-03-14
+[WARN ] ^GSPC  flat_bar           8547 O=H=L=C bars (1927-12-30 -> 1983-06-30); 38 on/after analysis_start 1962-07-02; close-only history, do not use high/low methods before the analysis start
+[WARN ] ^GSPC  zero_volume        5497 zero-volume bars (1927-12-30 -> 2023-05-24)
+[WARN ] ^IXIC  flat_bar           3459 O=H=L=C bars (1971-02-05 -> 1990-04-05); 2 on/after analysis_start 1984-10-11; close-only history, do not use high/low methods before the analysis start
+[WARN ] ^IXIC  zero_volume        3457 zero-volume bars (1971-02-05 -> 1984-10-10)
+[WARN ] IYT    flat_bar           8 O=H=L=C bars (2004-02-13 -> 2004-09-03); close-only history, do not use high/low methods before the analysis start
+[INFO ] ^DJI   coverage           first=1992-01-02 last=2026-11-06 rows=8775
+[INFO ] ^DJI   gap                46 missing sessions in runs <= 4 (holiday-calendar approximation)
+[INFO ] ^DJT   coverage           first=1992-01-02 last=2026-11-06 rows=8775
+[INFO ] ^DJT   gap                46 missing sessions in runs <= 4 (holiday-calendar approximation)
+[INFO ] ^GSPC  coverage           first=1927-12-30 last=2026-11-06 rows=24831
+[INFO ] ^GSPC  coverage           analysis_start=1962-07-02 clips 8635 earlier close-only bars
+[INFO ] ^GSPC  gap                301 missing sessions in runs <= 4 (holiday-calendar approximation)
+[INFO ] ^IXIC  coverage           first=1971-02-05 last=2026-11-06 rows=14057
+[INFO ] ^IXIC  coverage           analysis_start=1984-10-11 clips 3457 earlier close-only bars
+[INFO ] ^IXIC  gap                74 missing sessions in runs <= 4 (holiday-calendar approximation)
+[INFO ] SPY    coverage           first=1993-01-29 last=2026-11-06 rows=8502
+[INFO ] SPY    gap                45 missing sessions in runs <= 4 (holiday-calendar approximation)
+[INFO ] IYT    coverage           first=2004-01-02 last=2026-11-06 rows=5749
+[INFO ] IYT    gap                29 missing sessions in runs <= 4 (holiday-calendar approximation)

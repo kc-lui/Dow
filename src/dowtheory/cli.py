@@ -20,7 +20,6 @@ from dowtheory.data.quality import QualityIssue
 from dowtheory.storage.clickhouse_client import ClickHouseClient
 
 logger = logging.getLogger("dow")
-NOT_IMPLEMENTED = 2
 
 
 def _fetch_one(source: str, symbol: str, start: str | None, cfg: DowConfig) -> pd.DataFrame:
@@ -130,11 +129,32 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
-def _stub(name: str):
-    def run(args: argparse.Namespace) -> int:
-        print(f"{name}: not implemented in P2")
-        return NOT_IMPLEMENTED
-    return run
+def cmd_backtest(args: argparse.Namespace) -> int:
+    """Run the pre-registered rule backtests; write reports, JSON and the status table."""
+    from dowtheory.backtest.reporting import write_outputs
+    from dowtheory.backtest.runner import LABEL_PAIR, persist_run, run_backtest
+
+    cfg = load_config(args.config)
+    pairs = args.pair or [LABEL_PAIR]
+    root = project_root()
+    client = ClickHouseClient() if args.source == "clickhouse" or args.persist else None
+    try:
+        run = run_backtest(
+            pairs, cfg=cfg, source=args.source, csv=args.csv, csv_pair=args.csv_pair,
+            sweeps=not args.no_sweeps, workers=args.workers, deviations=args.deviation,
+            root=root, client=client,
+        )
+        status = Path(args.status_table) if args.status_table else root / "analysis" / "rule_status_table.md"
+        for path in write_outputs(run, Path(args.out), status, root):
+            print(f"wrote {path.relative_to(root) if path.is_relative_to(root) else path}")
+        if args.persist:
+            assert client is not None
+            print(f"Persisted rows: {persist_run(run, client)} (run_id {run.run_id})")
+    finally:
+        if client is not None:
+            client.close()
+    print(f"runtime {run.runtime_s:.1f}s")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -166,7 +186,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--persist", action="store_true", help="insert into dow.str_* tables")
     p.add_argument("--out-dir", dest="out_dir", default="outputs/charts")
     p.set_defaults(func=cmd_analyze)
-    sub.add_parser("backtest", help="(P4)").set_defaults(func=_stub("backtest"))
+    p = sub.add_parser("backtest", help="pre-registered rule backtests (analysis/decision_table.md)")
+    p.add_argument("--pair", action="append", default=None,
+                   help="pair name from pairs.yaml (repeatable; default DJ, the only labelled pair)")
+    p.add_argument("--persist", action="store_true", help="insert into dow.str_rule_backtest_log")
+    p.add_argument("--out", default="reports", help="directory for rule_<Rn>.md and run JSON")
+    p.add_argument("--status-table", dest="status_table", default=None,
+                   help="path of rule_status_table.md (default analysis/rule_status_table.md)")
+    p.add_argument("--source", choices=["clickhouse", "csv"], default="clickhouse")
+    p.add_argument("--csv", default=None, help="CSV for the first leg (source=csv)")
+    p.add_argument("--csv-pair", dest="csv_pair", default=None, help="CSV for the second leg")
+    p.add_argument("--no-sweeps", dest="no_sweeps", action="store_true",
+                   help="skip the robustness grid (R4/R5 labels then use the 5-point grid only)")
+    p.add_argument("--workers", type=int, default=1, help="processes for the R1 simulated null")
+    p.add_argument("--deviation", action="append", default=[], help="DEV-nn id to record (repeatable)")
+    p.set_defaults(func=cmd_backtest)
     return parser
 
 

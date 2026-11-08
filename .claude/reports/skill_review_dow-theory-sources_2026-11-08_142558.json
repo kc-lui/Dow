@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-11-08 14:25:58",
+  "seed": null,
+  "selection_mode": "manual",
+  "skill_name": "dow-theory-sources",
+  "skill_file": "skills/dow-theory-sources/SKILL.md",
+  "auto_review": {
+    "skill_name": "dow-theory-sources",
+    "skill_file": "skills/dow-theory-sources/SKILL.md",
+    "skill_type": "knowledge_only",
+    "score": 83,
+    "score_breakdown": {
+      "metadata_use_case": 20,
+      "workflow_coverage": 25,
+      "execution_safety_reproducibility": 17,
+      "supporting_artifacts": 9,
+      "test_health": 12
+    },
+    "findings": [],
+    "improvements_required": true,
+    "improvement_items": [],
+    "test_status": "not_applicable",
+    "test_command": null,
+    "test_output": ""
+  },
+  "llm_review": {
+    "provided": false,
+    "source_file": null,
+    "score": null,
+    "summary": "",
+    "findings": []
+  },
+  "final_review": {
+    "score": 83,
+    "weights": {
+      "auto_weight": 1.0,
+      "llm_weight": 0.0
+    },
+    "improvements_required": true,
+    "improvement_items": [],
+    "findings": []
+  },
+  "llm_prompt_file": null
+}

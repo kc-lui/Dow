@@ -68,3 +68,8 @@ Safe to repeat, all statements are `CREATE ... IF NOT EXISTS`.
 
 Init runs with the admin account (`CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD`; defaults `trading_user`) and substitutes `DOW_CLICKHOUSE_PASSWORD` (default `dow_secret`) into `02_users.sql`. Package access uses `DOW_CLICKHOUSE_USER` / `DOW_CLICKHOUSE_PASSWORD`. See `.env.example`.
 Schema changes go in a new numbered file (for example `03_*.sql`), not in edits to applied tables.
+
+`scripts/migrate_rule_log_v2.py` (idempotent) rebuilt `str_rule_backtest_log` with
+`ORDER BY (rule_id, pair, run_id, metric_name)`: the old key omitted `metric_name`, so merges kept one
+row per rule, pair and run. The superseded table remains as `dow.str_rule_backtest_log_v2` (its 16
+surviving rows belong to run `b94022285206435e83b1c068eb123dc9`, whose other rows were lost).

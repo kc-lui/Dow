@@ -1,0 +1,69 @@
+{
+  "score": 89,
+  "summary": "Round 2. All ten round-1 findings were addressed: the description is now a folded YAML scalar of 1019 characters (frontmatter parses with only name and description; both scripts/check_quotes.py and scripts/check_labels.py return ALL CLEAN, exit 0); the Cowles and Brown-Goetzmann-Kumar rows are relabelled 【single-source】 with the R-062 dispute kept on the step heading; the citation-year row and the terminal-value arithmetic are now marked 【agent-defined】 project checks in both SKILL.md and evidence.md; evidence.md section 1 has URL rows for edwards-magee, reason-1974 and thismatter; the note count reads 42 with the registry discrepancy explained; Example 2 carries full slug:Qn pointers; the Boundaries remark is durable. Fidelity is strong: I resolved all 60 distinct slug:Qn pointers in SKILL.md and evidence.md against research/sources and every quote is verbatim and attributed to the right author and date; 40 rule ids (R-001 to R-018, R-020 to R-027, R-032 to R-038, R-042 to R-055, R-059, R-060, R-062, R-063, R-065) carry the registry's label, disputed figures are shown side by side without adjudication, and the 8.9 against 7.9 percent arithmetic reproduces. Structure meets the contract (H1 and preamble, the eight H2s in order, four examples, boundary table, relative paths, no /Users/). As a routing target it works: the Workflow alone yields correct, labelled, side-by-side answers for secondary duration (Step 1 to Step 3, Example 1), the defense line (Step 1, Step 6, Example 4) and buy-and-hold (Step 5, Example 3), each with the right hand-off. It stops just short of sign-off because the round-1 fix to Limitations 6 was applied wrongly: it now puts Brown, Goetzmann and Kumar inside Cowles's December 1903 to December 1929 window, while the BGK note states a 1902 to 1929 sample. The rest are low-severity pointer hygiene and scoping issues: a Nelson quote placed under a date the source does not give, wikipedia's 'less than a year' figure filed under an 'one year or more' educator row, three abbreviated or bare Qn pointers, three SKILL.md pointers absent from evidence.md, the Rhea 12-week ceiling still attached to R-006 only, an unlabelled R-012 row inside a disputed table, a consensus label on a claim with no rule id, and Chinese terms in the body outside the one-line glossary that contract item 10 allows.",
+  "findings": [
+    {
+      "severity": "medium",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 222,
+      "message": "Limitations 6 says Cowles and Brown, Goetzmann and Kumar score Hamilton's editorials 'over Cowles' own window, December 1903 to December 1929'. The BGK note (research/sources/brown-goetzmann-kumar-1998.md, Q1 and the Sample line) gives a 1902 to 1929 sample of 255 editorials, and the registry's section 1.9 and the BGK note's summary table both say 1902-1929. The round-1 fix merged the two studies into one window instead of splitting them, so the sentence is now wrong for BGK.",
+      "improvement": "Write: 'Cowles scores December 1903 to December 1929 (cowles-1933-can-forecasters-forecast:Q11); Brown, Goetzmann and Kumar score 1902 to 1929 (brown-goetzmann-kumar-1998:Q1), both on Hamilton's editorials; this project's backtests use data from 1992 onward and mechanical rules.' Mirror the window note in references/evidence.md section 6."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 107,
+      "message": "Step 3 primary-duration row 'Dow, Jan 1902' attaches nelson-1903-abc-of-stock-speculation:Q1 ('Bull markets and bear markets run four and five years at a time.'). The nelson note places Q1 in Ch. VI p.33 as the first of an undated list of essential points, and the registry (R-003 P1) lists it separately from the Jan 4, 1902 editorial. The row implies a date the source does not give.",
+      "improvement": "Move the Q1 quote to its own row: 'Dow, undated (Nelson Ch. VI essential points) | four and five years at a time | nelson-1903-abc-of-stock-speculation:Q1'."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 111,
+      "message": "Step 3 primary-duration row 'Educators' gives the figure 'months to years; one year or more' and cites wikipedia-en-dow-theory:Q2, whose text is 'less than a year to several years' (registry R-002 P3, the same position as Rhea). The figure column does not cover the cited source.",
+      "improvement": "Either move wikipedia-en-dow-theory:Q2 to the Rhea row as an echo, or change the figure to 'months to years; under a year to several years; one year or more' and keep the three pointers in the order of those figures."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 59,
+      "message": "Pointer format is inconsistent with the Output rule 'slug:Qn'. Line 59 writes 'wikipedia-en Q11' (abbreviated slug, no colon); line 108 writes 'at least a year (Q2)'; line 157 writes '(Q29)' and '(Q31)' with no slug. An agent copying these forms emits pointers that scripts/check_quotes.py cannot resolve if a quote is later attached.",
+      "improvement": "Write wikipedia-en-dow-theory:Q11, hamilton-1922-stock-market-barometer:Q2, brown-goetzmann-kumar-1998:Q29 and brown-goetzmann-kumar-1998:Q31 in full."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/references/evidence.md",
+      "line": 3,
+      "message": "The header says the file holds every quote and rule id used in SKILL.md. Three pointers used in SKILL.md have no row (stockfeel-dow-theory:Q4 at line 111, wikipedia-en-dow-theory:Q2 at line 111, thismatter-dow-theory:Q10 at line 193), while the file also carries about fifteen quotes SKILL.md does not use (for example hamilton Q17, Q19, Q20; nelson Q3, Q8, Q9; rhea Q1, Q2; brown-goetzmann-kumar Q5, Q9, Q12, Q14, Q43; russell Q7; wikipedia-en Q3). The mapping is neither complete nor one-to-one as described.",
+      "improvement": "Add rows for the three missing pointers (section 4 for the two primary-duration pointers, section 4 'Filters, confirmation' for thismatter Q10 with its 'credits Dow' note), and reword the header to 'every quote and rule id used in SKILL.md, plus context quotes from the same registry rows' or prune the unused rows."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 86,
+      "message": "The 'Rhea alt.' row now files the 15-day and 5 percent screen under R-013 (fixed) but still attaches '3 to 12 weeks' to R-006 alone. In the registry the 12-week ceiling is R-007 P4 (line 57) and only the 3-week floor belongs to R-006.",
+      "improvement": "Change the position cell to 'Rhea alt. (R-006 floor, R-007 ceiling; the 15-day and 5 percent screen is filed under R-013)'."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 99,
+      "message": "The Schannep R-012 row sits inside the secondary-retracement table whose heading carries 【literature-disputed】 for R-008 to R-011, and the row itself has no label. The registry labels R-012 single-source (Schannep, echoed). A reader infers the 3 percent and 4 percent figures are disputed rather than single-source.",
+      "improvement": "Append '【single-source】' to the row's source cell, matching the registry, as the Lines and Filters tables already do for Schannep rows."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 140,
+      "message": "Step 4 row 'Dow Theory as a name' carries 【literature-consensus】 but cites no rule id; the registry has no R-row for the naming, and its provenance chain (section 3) records a conflict: wikipedia-zh credits Hamilton, Rhea and Schaefer with naming the theory, which conflicts with Russell. Contract item 4 ties every label to an R-0xx id and requires disputes to be shown.",
+      "improvement": "Scope the label to the claim the two quotes actually support ('Dow never used the term', russell Q2 and wikipedia-en Q1) and add 'who coined it: Nelson's footnote per the nelson note; wikipedia-zh credits later theorists (registry section 3, no R-id)'. Or drop the label and mark the row 'provenance note, no rule id'."
+    },
+    {
+      "severity": "low",
+      "path": "skills/dow-theory-sources/SKILL.md",
+      "line": 30,
+      "message": "Contract item 10 allows Chinese only in the description's trigger terms and the one-line glossary mapping in Step 1. The When to Use bullets at lines 30 and 31 and the Example 4 heading at line 199 also carry 道氏防線, 主要趨勢, 次要趨勢, 小型趨勢, 支撐線, 壓力線 and 盤整 (the Step 6 quote is verbatim source text and is fine).",
+      "improvement": "Use the English terms in the body ('Is the Dow defense line a Dow Theory term?', 'What is the English term for a Chinese Dow Theory word? See Step 1') and leave the Chinese to the description and the Step 1 mapping line, or amend skill_contract.md item 10 to allow trigger terms in When to Use."
+    }
+  ]
+}

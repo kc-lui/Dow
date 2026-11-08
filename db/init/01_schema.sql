@@ -117,7 +117,9 @@ SETTINGS index_granularity = 8192;
 
 -- =============================================================================
 -- str_rule_backtest_log: one row per rule, pair, run and metric (evidence ledger)
--- Not partitioned: low volume. config_hash and decision_table_hash prove the decision
+-- Not partitioned: low volume. metric_name is part of the sorting key: ReplacingMergeTree
+-- collapses rows with an equal key, and one run writes many metrics per rule and pair.
+-- config_hash and decision_table_hash prove the decision
 -- table was fixed before the backtest ran.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS dow.str_rule_backtest_log
@@ -142,7 +144,7 @@ CREATE TABLE IF NOT EXISTS dow.str_rule_backtest_log
     inserted_at          DateTime64(3, 'UTC') DEFAULT now64(3)
 )
 ENGINE = ReplacingMergeTree(inserted_at)
-ORDER BY (rule_id, pair, run_id)
+ORDER BY (rule_id, pair, run_id, metric_name)
 SETTINGS index_granularity = 8192;
 
 -- =============================================================================

@@ -26,7 +26,12 @@ def main() -> int:
         username=os.getenv("CLICKHOUSE_USER", "trading_user"),
         password=os.getenv("CLICKHOUSE_PASSWORD", "trading_secret"),
     )
-    statements = [s for f in sorted(SQL_DIR.glob("*.sql")) for s in split_statements(f.read_text())]
+    password = os.getenv("DOW_CLICKHOUSE_PASSWORD", "dow_secret")
+    statements = [
+        s.replace("${DOW_CLICKHOUSE_PASSWORD}", password.replace("'", "\\'"))
+        for f in sorted(SQL_DIR.glob("*.sql"))
+        for s in split_statements(f.read_text())
+    ]
     for stmt in statements:  # validate all before executing any
         if FORBIDDEN.search(stmt):
             print(f"REFUSED (DROP/TRUNCATE found): {stmt[:80]}...", file=sys.stderr)

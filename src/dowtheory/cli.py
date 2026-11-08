@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import runpy
 import sys
 from collections.abc import Sequence
@@ -14,6 +15,7 @@ import pandas as pd
 from dowtheory.config import DowConfig, load_config, load_pairs, project_root
 from dowtheory.data import quality, stooq_fetcher, yahoo_fetcher
 from dowtheory.data.bars import to_insert_frame
+from dowtheory.data.loader import IGNORE_ENV
 from dowtheory.data.quality import QualityIssue
 from dowtheory.storage.clickhouse_client import ClickHouseClient
 
@@ -42,32 +44,41 @@ def cmd_init_db(args: argparse.Namespace) -> int:
 
 
 def cmd_fetch(args: argparse.Namespace) -> int:
+    """Fetch (and insert unless --probe) each symbol independently; any failure -> exit 1.
+
+    A failing symbol is recorded as an error row and does not stop the others. All issues
+    are logged in one run even when a symbol fails.
+    """
     cfg = load_config(args.config)
     symbols = args.symbols or cfg.data.symbols
-    status = 0
+    failed = False
     issues: list[QualityIssue] = []
     counts: dict[str, int] = {}
     with ClickHouseClient() as client:
-        for symbol in symbols:
-            try:
-                bars = _fetch_one(args.source, symbol, args.start, cfg)
-            except (ValueError, stooq_fetcher.SourceUnavailable) as exc:
-                print(f"FAIL {symbol}: {exc}", file=sys.stderr)
-                issues.append(QualityIssue(symbol, "coverage", "error", f"fetch failed: {exc}"))
-                status = 1
-                continue
-            if args.probe:
-                issues.append(_coverage_issue(symbol, bars, args.source, "probe"))
-            else:
-                client.insert_df("dow.mkt_klines", to_insert_frame(bars))
-                issues.append(_coverage_issue(symbol, bars, args.source, "backfill"))
-                if not args.start:
+        try:
+            for symbol in symbols:
+                try:
+                    bars = _fetch_one(args.source, symbol, args.start, cfg)
+                    if bars.empty:
+                        raise ValueError(f"no bars on/after {args.start}")
+                    if not args.probe:
+                        client.insert_df("dow.mkt_klines", to_insert_frame(bars))
+                except Exception as exc:
+                    logger.exception("fetch %s failed", symbol)
+                    issues.append(QualityIssue(
+                        symbol, "coverage", "error", f"fetch failed: {type(exc).__name__}: {exc}"))
+                    failed = True
+                    continue
+                note = "probe" if args.probe else "backfill"
+                issues.append(_coverage_issue(symbol, bars, args.source, note))
+                if not args.probe and not args.start:
                     counts[symbol] = len(bars)
-            print(issues[-1].symbol, issues[-1].detail)
-        if not args.probe and counts:
-            issues += quality.row_reconciliation(client, counts)
-        quality.log_issues(client, issues)
-    return 1 if status or quality.exit_status(issues) else 0
+                print(symbol, issues[-1].detail)
+            if counts:
+                issues += quality.row_reconciliation(client, counts)
+        finally:
+            quality.log_issues(client, issues)
+    return 1 if failed or quality.exit_status(issues) else 0
 
 
 def run_check(symbols: list[str] | None = None, config: str | None = None) -> tuple[int, str]:
@@ -129,6 +140,8 @@ def _stub(name: str):
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="dow", description="Dow Theory toolkit")
     parser.add_argument("--config", default=None, help="path to dow.yaml (default $DOW_CONFIG)")
+    parser.add_argument("--ignore-analysis-start", action="store_true",
+                        help="do not clip close-only history to data.analysis_start")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init-db", help="create dow tables").set_defaults(func=cmd_init_db)
     p = sub.add_parser("fetch", help="fetch bars and insert into dow.mkt_klines")
@@ -160,6 +173,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     args = build_parser().parse_args(argv)
+    if args.ignore_analysis_start:
+        os.environ[IGNORE_ENV] = "1"
     return int(args.func(args))
 
 

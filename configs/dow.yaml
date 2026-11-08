@@ -10,6 +10,15 @@ data:
   interval: 1d
   stale_business_days: 5
   max_gap_business_days: 4
+  # First date with real OHLC (earlier history is close-only: open=high=low=close).
+  # load_klines clips to this date unless told otherwise.
+  analysis_start:
+    '^DJI': null
+    '^DJT': null
+    '^GSPC': '1962-07-02'
+    '^IXIC': '1984-10-11'
+    SPY: null
+    IYT: null
 swings:
   method: pct
   minor_pct: 0.03

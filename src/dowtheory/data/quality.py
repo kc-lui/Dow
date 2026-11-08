@@ -9,6 +9,7 @@ Friday and ad-hoc closures (those appear as short gaps). Gap runs of at most
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -19,7 +20,7 @@ from dowtheory.config import DowConfig
 from dowtheory.storage.clickhouse_client import ClickHouseClient
 
 LOG_TABLE = "dow.ops_data_quality_log"
-EPOCH = pd.Timestamp(0, tz="UTC")
+NY = "America/New_York"
 
 
 @dataclass(frozen=True)
@@ -78,6 +79,22 @@ def check_ohlc(symbol: str, df: pd.DataFrame) -> list[QualityIssue]:
                          f"{len(bad)} bars violate OHLC sanity; first {first.date()}", first)]
 
 
+def check_flat_bars(
+    symbol: str, df: pd.DataFrame, analysis_start: str | None = None
+) -> list[QualityIssue]:
+    """Warn about O=H=L=C bars (close-only history presented as OHLC)."""
+    flat = (df["open"] == df["high"]) & (df["high"] == df["low"]) & (df["low"] == df["close"])
+    if not flat.any():
+        return []
+    dates = df.index[flat]
+    after = f"; {int((dates >= pd.Timestamp(analysis_start)).sum())} on/after analysis_start " \
+            f"{analysis_start}" if analysis_start else ""
+    return [QualityIssue(
+        symbol, "flat_bar", "warn",
+        f"{len(dates)} O=H=L=C bars ({dates[0].date()} -> {dates[-1].date()}){after}; "
+        "close-only history, do not use high/low methods before the analysis start", dates[0])]
+
+
 def check_zero_volume(symbol: str, df: pd.DataFrame, exchange: str) -> list[QualityIssue]:
     """Zero-volume bars: warn for indices (volume often unreported), error otherwise."""
     zero = df[df["volume"] == 0]
@@ -112,18 +129,52 @@ def row_reconciliation(client: ClickHouseClient, source_counts: dict[str, int]) 
     return issues
 
 
-def _check_duplicates(client: ClickHouseClient, symbol: str) -> list[QualityIssue]:
-    """Count duplicate (symbol, ts_open) keys WITHOUT FINAL, as the raw table sees them."""
-    dup = client.query_df(
-        "SELECT count() AS keys, sum(c - 1) AS extra FROM ("
-        "SELECT count() AS c FROM dow.mkt_klines WHERE symbol = {s:String} "
-        "GROUP BY symbol, interval, ts_open HAVING c > 1)", {"s": symbol})
-    extra = int(dup["extra"].iloc[0] or 0)
-    if extra:
-        return [QualityIssue(symbol, "duplicate", "error",
-                             f"{extra} extra rows over {int(dup['keys'].iloc[0])} duplicated "
-                             "keys (run OPTIMIZE TABLE dow.mkt_klines FINAL if they are re-loads)")]
-    return []
+def check_duplicates(client: ClickHouseClient, symbol: str) -> list[QualityIssue]:
+    """Raw-table duplicates per (symbol, interval, ts_open), split by whether values agree.
+
+    Identical re-loads are info (they vanish on merge). Rows with different
+    exchange/OHLC/volume for one key are errors: they must be resolved by a person.
+    """
+    inner = (
+        "FROM (SELECT ts_open, count() AS c, "
+        "uniqExact(tuple(exchange, open, high, low, close, volume)) AS v "
+        "FROM dow.mkt_klines WHERE symbol = {s:String} AND interval = '1d' "
+        "GROUP BY ts_open HAVING c > 1)"
+    )
+    row = client.query_df(
+        f"SELECT countIf(v = 1) AS ident_keys, sumIf(c - 1, v = 1) AS ident_extra, "
+        f"countIf(v > 1) AS conflict_keys {inner}", {"s": symbol}).iloc[0]
+    issues: list[QualityIssue] = []
+    if int(row["ident_keys"]):
+        issues.append(QualityIssue(
+            symbol, "duplicate_identical", "info",
+            f"{int(row['ident_extra'] or 0)} extra identical rows over {int(row['ident_keys'])} keys"))
+    if int(row["conflict_keys"]):
+        sample = client.query_df(
+            f"SELECT ts_open {inner} WHERE v > 1 ORDER BY ts_open LIMIT 5", {"s": symbol})
+        first = [str(t.date()) for t in pd.to_datetime(sample["ts_open"])] if len(sample) else []  # empty if merged in between
+        issues.append(QualityIssue(
+            symbol, "duplicate_conflict", "error",
+            f"{int(row['conflict_keys'])} keys with conflicting values for the same ts_open; "
+            f"first: {first}", pd.Timestamp(first[0]) if first else None))
+    return issues
+
+
+def check_exchange(
+    client: ClickHouseClient, symbol: str, final_exchange: str, expected: str | None
+) -> list[QualityIssue]:
+    """Error when one symbol carries several exchanges or differs from ``exchange_map``."""
+    n = int(client.query_df(
+        "SELECT uniqExact(exchange) AS n FROM dow.mkt_klines WHERE symbol = {s:String}",
+        {"s": symbol})["n"].iloc[0])
+    issues = []
+    if n > 1:
+        issues.append(QualityIssue(symbol, "exchange_conflict", "error",
+                                   f"{n} distinct exchange values stored for this symbol"))
+    if expected is not None and final_exchange != expected:
+        issues.append(QualityIssue(symbol, "exchange_conflict", "error",
+                                   f"stored exchange '{final_exchange}' != configured '{expected}'"))
+    return issues
 
 
 def run_integrity_checks(
@@ -133,10 +184,16 @@ def run_integrity_checks(
     source_counts: dict[str, int] | None = None,
     log: bool = True,
     today: pd.Timestamp | None = None,
+    run_id: str | None = None,
 ) -> list[QualityIssue]:
-    """Run all checks for ``symbols``, optionally log them, and return the issues."""
-    today = today or pd.Timestamp.now().normalize()
+    """Run all checks for ``symbols``, optionally log them, and return the issues.
+
+    An empty symbol list is itself an error: a gate that checks nothing must not pass.
+    """
+    today = today or pd.Timestamp.now(tz=NY).tz_localize(None).normalize()
     issues: list[QualityIssue] = []
+    if not symbols:
+        issues.append(QualityIssue("*", "coverage", "error", "no symbols to check"))
     for symbol in symbols:
         df = client.query_df(
             "SELECT toDate32(ts_open, 'America/New_York') AS date, exchange, open, high, low, "
@@ -151,36 +208,57 @@ def run_integrity_checks(
         df = df.set_index("date")
         for col in ("open", "high", "low", "close"):
             df[col] = df[col].astype(float)
+        start = cfg.data.analysis_start.get(symbol)
         issues.append(QualityIssue(
             symbol, "coverage", "info",
             f"first={df.index[0].date()} last={df.index[-1].date()} rows={len(df)}"))
+        if start:
+            clipped = int((df.index < pd.Timestamp(start)).sum())
+            issues.append(QualityIssue(
+                symbol, "coverage", "info",
+                f"analysis_start={start} clips {clipped} earlier close-only bars"))
         issues += check_gaps(symbol, df.index, cfg.data.max_gap_business_days)
-        issues += _check_duplicates(client, symbol)
+        issues += check_duplicates(client, symbol)
+        issues += check_exchange(client, symbol, exchange, cfg.data.exchange_map.get(symbol))
         issues += check_ohlc(symbol, df)
+        issues += check_flat_bars(symbol, df, start)
         issues += check_zero_volume(symbol, df, exchange)
         issues += check_stale(symbol, df.index[-1], today, cfg.data.stale_business_days)
     if source_counts:
         issues += row_reconciliation(client, source_counts)
     if log:
-        log_issues(client, issues)
+        log_issues(client, issues, run_id)
     return issues
 
 
-def log_issues(client: ClickHouseClient, issues: list[QualityIssue]) -> None:
-    """Append issues to ``dow.ops_data_quality_log`` (no-op for an empty list)."""
+def _bar_ts(ts: pd.Timestamp | None) -> pd.Timestamp:
+    """Bar key (session date at 09:30 NY) or the epoch sentinel when not bar-specific."""
+    if ts is None:
+        return pd.Timestamp(0, tz="UTC").tz_convert(NY)
+    return (ts.tz_localize(None).normalize() + pd.Timedelta(hours=9, minutes=30)).tz_localize(NY)
+
+
+def new_run_id() -> str:
+    """Fresh identifier grouping the rows of one check or fetch run."""
+    return uuid.uuid4().hex
+
+
+def log_issues(client: ClickHouseClient, issues: list[QualityIssue], run_id: str | None = None) -> str:
+    """Append issues to ``dow.ops_data_quality_log``; returns the run_id used."""
+    run_id = run_id or new_run_id()
     if not issues:
-        return
-    now = datetime.now(UTC)
+        return run_id
     frame = pd.DataFrame({
-        "ts": [now] * len(issues),
+        "ts": [datetime.now(UTC)] * len(issues),
         "symbol": [i.symbol for i in issues],
         "check_name": [i.check_name for i in issues],
         "severity": [i.severity for i in issues],
         "detail": [i.detail for i in issues],
-        "bar_ts": [(i.bar_ts.tz_localize("America/New_York") if i.bar_ts is not None
-                    and i.bar_ts.tzinfo is None else i.bar_ts or EPOCH) for i in issues],
+        "bar_ts": pd.to_datetime([_bar_ts(i.bar_ts) for i in issues], utc=True).tz_convert(NY),
+        "run_id": run_id,
     })
     client.insert_df(LOG_TABLE, frame)
+    return run_id
 
 
 def exit_status(issues: list[QualityIssue]) -> int:

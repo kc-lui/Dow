@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from pathlib import Path
 from typing import Literal
 
 import pandas as pd
 
+from dowtheory.config import DowConfig, load_config
 from dowtheory.storage.clickhouse_client import ClickHouseClient
+
+logger = logging.getLogger(__name__)
+IGNORE_ENV = "DOW_IGNORE_ANALYSIS_START"
 
 OHLCV = ["open", "high", "low", "close", "volume"]
 _DATE_COLUMNS = ("date", "ts_open")
@@ -63,8 +69,19 @@ def load_klines(
     source: Literal["clickhouse", "csv"] = "clickhouse",
     csv_path: str | Path | None = None,
     client: ClickHouseClient | None = None,
+    ignore_analysis_start: bool = False,
+    cfg: DowConfig | None = None,
 ) -> pd.DataFrame:
-    """Return OHLCV indexed by session date (``date``), float prices, ascending, no duplicates."""
+    """Return OHLCV indexed by session date (``date``), float prices, ascending, no duplicates.
+
+    ``data.analysis_start[symbol]`` clips close-only history (O=H=L=C) unless
+    ``ignore_analysis_start`` or env ``DOW_IGNORE_ANALYSIS_START=1`` is set.
+    """
+    if not (ignore_analysis_start or os.getenv(IGNORE_ENV) == "1"):
+        floor = (cfg or load_config()).data.analysis_start.get(symbol)
+        if floor and (start is None or pd.Timestamp(start) < pd.Timestamp(floor)):
+            logger.info("%s: clipping history to analysis_start %s (requested %s)", symbol, floor, start)
+            start = floor
     if source == "clickhouse":
         df = _load_clickhouse(symbol, start, end, client)
     elif source == "csv":

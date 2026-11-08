@@ -44,3 +44,15 @@ def test_errors(tmp_path):
     bad.write_text("Date,Open\n2024-01-01,1\n")
     with pytest.raises(ValueError):
         load_klines("^DJI", source="csv", csv_path=bad)
+
+
+def test_analysis_start_clips_by_default_and_can_be_ignored(tmp_path):
+    dates = pd.bdate_range("1962-06-25", periods=10)
+    p = tmp_path / "g.csv"
+    pd.DataFrame({"Date": dates.strftime("%Y-%m-%d"), "Open": 1.0, "High": 1.0, "Low": 1.0,
+                  "Close": 1.0, "Volume": 0}).to_csv(p, index=False)
+    clipped = load_klines("^GSPC", source="csv", csv_path=p)
+    assert clipped.index.min() == pd.Timestamp("1962-07-02")
+    full = load_klines("^GSPC", source="csv", csv_path=p, ignore_analysis_start=True)
+    assert full.index.min() == pd.Timestamp("1962-06-25")
+    assert load_klines("^DJI", source="csv", csv_path=p).index.min() == pd.Timestamp("1962-06-25")

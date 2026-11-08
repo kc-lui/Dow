@@ -35,6 +35,7 @@ class DataConfig:
     interval: str = "1d"
     stale_business_days: int = 5
     max_gap_business_days: int = 4
+    analysis_start: dict[str, str | None] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

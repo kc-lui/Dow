@@ -14,7 +14,8 @@
 --   1. PARTITION BY toYear(ts) replaces the non-existent toYYYY(ts). ClickHouse has toYear.
 --   2. ops_data_quality_log.bar_ts DEFAULT toDateTime64(0, 3) is kept as specified. The value
 --      means "no bar" (epoch). It is a non-Nullable sentinel per DBA-9.
---   3. Table dimension "exchange" in mkt_klines is not in ORDER BY (per brief). A symbol must
+--   3. mkt_klines is partitioned by year (monthly gave ~1200 tiny partitions for 70k rows).
+--   4. Table dimension "exchange" in mkt_klines is not in ORDER BY (per brief). A symbol must
 --      therefore map to one exchange, otherwise rows from two exchanges would collapse.
 
 CREATE DATABASE IF NOT EXISTS dow;
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS dow.mkt_klines
     inserted_at  DateTime64(3, 'UTC') DEFAULT now64(3)
 )
 ENGINE = ReplacingMergeTree(inserted_at)
-PARTITION BY toYYYYMM(ts_open)
+PARTITION BY toYear(ts_open)
 ORDER BY (symbol, interval, ts_open)
 SETTINGS index_granularity = 8192;
 
@@ -146,19 +147,21 @@ SETTINGS index_granularity = 8192;
 
 -- =============================================================================
 -- ops_data_quality_log: findings of integrity checks (append-only audit)
--- ts is the check time (UTC). bar_ts is the affected bar, or epoch when not bar-specific.
+-- Plain MergeTree on purpose: an audit log must never deduplicate. run_id groups one run.
+-- ts is the check time (UTC). bar_ts is the affected bar (09:30 NY), or epoch when not bar-specific.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS dow.ops_data_quality_log
 (
     ts           DateTime64(3, 'UTC'),
     symbol       LowCardinality(String),
-    check_name   LowCardinality(String),        -- 'gap', 'duplicate', 'ohlc_sanity', 'zero_volume', 'stale', 'coverage', 'row_reconciliation'
+    check_name   LowCardinality(String),        -- 'gap', 'duplicate_identical', 'duplicate_conflict', 'exchange_conflict', 'ohlc_sanity', 'flat_bar', 'zero_volume', 'stale', 'coverage', 'row_reconciliation'
     severity     LowCardinality(String),        -- 'info', 'warn', 'error'
     detail       String,
     bar_ts       DateTime64(3, 'America/New_York') DEFAULT toDateTime64(0, 3),
-    inserted_at  DateTime64(3, 'UTC') DEFAULT now64(3)
+    inserted_at  DateTime64(3, 'UTC') DEFAULT now64(3),
+    run_id       String
 )
-ENGINE = ReplacingMergeTree(inserted_at)
+ENGINE = MergeTree
 PARTITION BY toYYYYMM(ts)
-ORDER BY (symbol, check_name, ts)
+ORDER BY (symbol, check_name, ts, run_id)
 SETTINGS index_granularity = 8192;

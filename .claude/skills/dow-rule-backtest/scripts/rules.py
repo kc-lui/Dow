@@ -31,7 +31,7 @@ def main(argv=None) -> int:
     run_path or ap.error("no reports/backtest_run_*.json found; pass --run PATH")
     table_hash, table_rows = r.read_table(table)
     run = json.loads(Path(run_path).read_text(encoding="utf-8"))
-    rules = list(r.RULES) if a.rule == "all" else [a.rule.upper()]
+    rules = list(r.RULES) if a.rule == "ALL" else [a.rule]
     rows = [
         r.rule_row(run, p, rule, table_rows.get(rule) if p == "DJ" else None)
         for p in a.pair

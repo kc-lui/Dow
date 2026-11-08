@@ -37,6 +37,7 @@ No source quotes. Every row of the Step 1 table paraphrases `../../../../analysi
 | R1 drift-matched null, flag text | R1 row (Mandatory robustness) | DEV-10, R11 F1 and section 7 |
 | R8 floor and random-spell null, flag text | R8 row | DEV-08 |
 | no lookahead | 1.5 | R11 section 2 (8 cut dates, 127 of 128 comparisons identical, the one diff an open line window) |
+| git timestamps (Limitation 6) | `protocol_deviations.md` header | `da6427c` 06:09 UTC holds decision_table.md with sha256 `c8675eff...` and a `.sha256` file still at v1 `d94a32e1...`; `3770aa1` 06:33 UTC updates the hash file; first label run 06:26 UTC (`backtest_run_20261108_062655.json`) |
 | deviations, cap rule | 6 | `analysis/protocol_deviations.md` header |
 
 ## 3. Step 2: rules, metrics and registry mapping
@@ -74,7 +75,7 @@ R11 verdicts: `../../../../reports/backtest_audit.md` section 8 (all eight endor
 
 | Point | Provenance |
 |---|---|
-| R1 mandatory caveat text (baseline 0.65 to 0.69; iid 0.654, zero drift 0.633, block 0.695; p_sim 0.0055 harness, about 0.0085 audit; n 33; never p_holm alone) | `rule_status_table.md` R1 notes; `rule_R1.md` section Mandatory caveat (R11 F1); `protocol.R1_CAVEAT`; `protocol_deviations.md` DEV-10; `backtest_audit.md` section 7 and F1 |
+| R1 mandatory caveat text (baseline 0.65 to 0.69; iid 0.654, zero drift 0.633, block 0.695; p_sim 0.0055 harness, about 0.0085 audit; n 33; never p_holm alone) | `rule_status_table.md` R1 notes; `rule_R1.md` section Mandatory caveat (R11 F1); `protocol.r1_caveat` via `runner.r1_caveat_for` (run-aware: the auditor baseline is quoted only when the run is the DJ reference run); `protocol_deviations.md` DEV-10; `backtest_audit.md` section 7 and F1 |
 | borderline after Holm against the correct baseline; headline at the most favourable grid point; direction robust across the grid | `backtest_audit.md` sections 5 and 7 |
 | meaning of insufficient-evidence; R6 0.547 and R7 0.516 bounds close to refuted | decision table 1.4; `backtest_audit.md` section 8 and recommendations |
 | exploratory single groups; 3 of 12 reversals in both groups | `backtest_audit.md` F4 and section 5; `protocol_deviations.md` DEV-09, DEV-11; `protocol.EXPLORATORY_NOTE` |
@@ -110,7 +111,7 @@ Quote used in Step 4.6:
 | "normal trading frictions would preclude using the Theory to generate large excess returns" (brown-goetzmann-kumar-1998:Q41) | Sec. IV.E, pp.19-20 (sub-span) | `R-062` 【literature-disputed】; BGK's own friction caveat |
 
   Paraphrased, not quoted: BGK Sharpe 0.559 against 0.456 for `R-062` (brown-goetzmann-kumar-1998:Q30; quoted in full in `dow-theory-sources` Step 5).
-- Example 4: `scripts/rules.py --rerun --out <DIR> --source csv --csv ../../../tests/fixtures/dji_sample.csv --no-sweeps` on 2026-11-08; the fixture is built by `../../../../tests/fixtures/make_dji_sample.py` (a synthetic sample of 300 backtest bars). The fixed caveat sentence (n = 33 on any run) is `protocol.R1_CAVEAT`.
+- Example 4: `scripts/rules.py --rerun --out <DIR> --source csv --csv ../../../tests/fixtures/dji_sample.csv --no-sweeps` on 2026-11-08; the fixture is built by `../../../../tests/fixtures/make_dji_sample.py` (a synthetic sample of 300 backtest bars). The fixture caveat line (Baseline not simulated for this run, harness null mean 0.549, p_sim 0.5434, n = 1) is produced by `protocol.r1_caveat` with `reference=False`; the reference-run wording (n = 33, p_sim 0.0055) stays in `rule_status_table.md` and `rule_R1.md`.
 
 ## 8. Rule ids cited
 

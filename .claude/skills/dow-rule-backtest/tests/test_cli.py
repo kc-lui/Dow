@@ -146,17 +146,29 @@ def test_rerun_requires_out_dir() -> None:
     assert proc.returncode == 2 and "--rerun needs --out DIR" in proc.stderr
 
 
+def test_invalid_rule_is_a_usage_error() -> None:
+    proc = run("--rule", "R9")
+    assert proc.returncode == 2 and "invalid choice" in proc.stderr
+    assert blocks(run("--rule", "r7").stdout).keys() == {"R7"}  # case-insensitive
+
+
+def committed_outputs() -> dict[str, str]:
+    """sha256 of every committed backtest output the harness could overwrite."""
+    files = [TABLE, *sorted((ROOT / "reports").glob("rule_R*.md"))]
+    files += sorted((ROOT / "reports").glob("backtest_run_*.json"))
+    return {str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in files}
+
+
 def test_rerun_on_csv_fixture_writes_only_into_out_dir(tmp_path: Path) -> None:
     """The wrapper reruns the harness on the fixture without touching the committed outputs."""
-    before = hashlib.sha256(TABLE.read_bytes()).hexdigest()
-    runs_before = sorted((ROOT / "reports").glob("backtest_run_*.json"))
+    before = committed_outputs()
+    assert len(before) == 1 + 16 + 2  # table, 8 DJ + 8 SP_IYT reports, two run JSONs
     proc = run(
         "--rerun", "--out", str(tmp_path), "--source", "csv", "--csv", str(FIXTURE), "--no-sweeps"
     )
     assert proc.returncode == 0, proc.stderr
     assert "--persist" not in proc.stdout and "--status-table" in proc.stdout
-    assert hashlib.sha256(TABLE.read_bytes()).hexdigest() == before
-    assert sorted((ROOT / "reports").glob("backtest_run_*.json")) == runs_before
+    assert committed_outputs() == before
     for rule in RULES:
         assert (tmp_path / f"rule_{rule}.md").is_file()
     (run_json,) = tmp_path.glob("backtest_run_*.json")
@@ -167,3 +179,6 @@ def test_rerun_on_csv_fixture_writes_only_into_out_dir(tmp_path: Path) -> None:
     assert [r["rule_id"] for r in doc["rules"]] == RULES
     assert {r["data_label"] for r in doc["rules"]} == {"insufficient-evidence"}  # 300 bars
     assert all(r["reason"] == "n below minimum" for r in doc["rules"])
+    caveat = {r["rule_id"]: r["caveat"] for r in doc["rules"]}["R1"]
+    assert "Baseline not simulated for this run" in caveat  # run-aware, not the reference text
+    assert "p_sim = 0.5434 and n = 1;" in caveat and "0.65 to 0.69" not in caveat

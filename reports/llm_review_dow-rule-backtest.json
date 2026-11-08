@@ -1,0 +1,13 @@
+{
+  "score": 95,
+  "summary": "Round 2 closes every round-1 finding and I re-verified each one by running it rather than reading the diff. Example 4 now shows the real fixture caveat line (Baseline not simulated for this run, harness null mean 0.549, p_sim = 0.5434, n = 1) and explains the run-aware protocol.r1_caveat / runner.r1_caveat_for behaviour; my own --rerun --out <scratch> on the CSV fixture reproduced that line verbatim, and evidence.md lines 78 and 114 now point at the real functions instead of the removed R1_CAVEAT constant. Limitation 6 states the git record correctly (da6427c 06:09 UTC holds the v2 table with sha256 c8675eff while decision_table.sha256 still carried the v1 hash; first label-driving run 06:26 UTC; hash file updated in 3770aa1 at 06:33 UTC; the audit's one-commit statement predates the check), matching protocol_deviations.md and my git show / shasum check, and evidence.md line 40 records the same facts. Step 2 gives the four-branch resolve_literature rule. --rule now has choices with str.upper, so `rules.py --rule R9` exits 2 with an argparse usage error and `--rule r1` still works. The rerun test hashes the table, all 16 rule reports and both run JSONs (asserting 19 files) and pins the fixture caveat text. Skill pytest 9/9; check_labels and check_quotes ALL CLEAN with evidence.md explicit; ruff check and ruff format --check clean; rules.py 56 lines; eight H2 sections in order; no absolute paths. Live --rule all --pair DJ and --rule R1 output unchanged from round 1 and still match the status table and run JSON; the committed status table, 16 reports and both run JSONs were byte-identical after the scratch rerun. All round-1 fidelity checks on figures, quotes, R-ids, CLI flags and non-persistence remain valid since those sections were not changed. No substantive issues remain; the one note below is cosmetic and does not affect correctness.",
+  "findings": [
+    {
+      "severity": "low",
+      "path": "skills/dow-rule-backtest/SKILL.md",
+      "line": 182,
+      "message": "Example 4's abbreviated output keeps the stamp from the original run (backtest_run_20261108_082330.json, runtime 3.1s) while the appended caveat line comes from a later fixture run. Both are genuine outputs and the numbers are deterministic, so nothing is wrong; the block is merely stitched from two invocations, and a reader comparing stamps with their own run may wonder why the stamp differs.",
+      "improvement": "Optional: replace the stamp and runtime with the <stamp> placeholder already used in the command line above it, or paste the full output of one single run."
+    }
+  ]
+}

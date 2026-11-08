@@ -71,7 +71,7 @@ Do not use it to define the swing, trend, line or confirmation algorithms, to qu
 | R7 volume_confirmation | consecutive with-trend and counter-trend secondary legs in a PRIMARY state, legs from 2000-01-03 | `p_vol` = share where the with-trend leg has the higher mean volume | 0.5, greater, binomial | `R-037`, `R-038`, `R-041` |
 | R8 hamilton_timing | long ^DJI when BULL_PRIMARY and pair-confirmed, else cash; next-close execution, 10 bps per side | `delta_sharpe` = annualised Sharpe of strategy minus buy-and-hold, daily log returns | 0, greater, joint stationary block bootstrap; spell null | `R-062` |
 
-The literature label of a row is `literature-disputed` if any mapped registry id is disputed, else `literature-consensus` (DEV-02). It is independent of the data label and both are shown side by side.
+The literature label of a row follows `labels.resolve_literature` (DEV-02): `literature-disputed` if any mapped registry id is disputed; `literature-consensus` if all are consensus; otherwise `single-source`; `unresolved` if a mapped id is missing from the registry (none of the eight rows hits the last two branches today). It is independent of the data label and both are shown side by side.
 
 **Step 3 - Results of the run of record (copied from `../../../analysis/rule_status_table.md`, run `a6d2d48e...`, pair `DJ`, spec `pct0.03/0.08f15`)**
 
@@ -186,11 +186,13 @@ runtime 3.1s
 R1 trend_persistence | pair DJ | spec pct0.03/0.08f15 | 2020-01-02..2021-02-24
   data label: insufficient-evidence | literature label: literature-consensus (R-016,R-017)
   n=1  p_extend na = 1.0000  95% CI [0.2065, 1.0000]  null 0.5000  p_raw=0.5000  p_holm=1.000000
+  sub-samples A? B? | refutation bound 1.0000 vs null 0.5000 -> not refuted
   reason: n below minimum
   flags: not-distinguishable-from-random-walk-with-drift
+  caveat: Mandatory caveat for any citation of R1 `data-confirmed` (R11 audit F1): the 0.5 null is not a random-walk baseline. Baseline not simulated for this run; see reports/backtest_audit.md (DJ reference run only). Pair DJ. Cite the harness baseline (harness null mean p_extend 0.549), p_sim = 0.5434 and n = 1; never p_holm alone.
 ```
 
-Reading: the committed `analysis/rule_status_table.md` and `reports/` are untouched (the wrapper always passes `--status-table` inside `--out`); the decision table hash in the scratch table equals the committed one, so the protocol was unchanged; the fixture run is a smoke test of the pipeline, not evidence. The caveat text printed by the harness is a fixed sentence apart from `p_sim`, so on a fixture it still says n = 33; read n from the row.
+Reading: the committed `analysis/rule_status_table.md` and `reports/` are untouched (the wrapper always passes `--status-table` inside `--out`); the decision table hash in the scratch table equals the committed one, so the protocol was unchanged; the fixture run is a smoke test of the pipeline, not evidence. The R1 caveat is run-aware (`protocol.r1_caveat`, built by `runner.r1_caveat_for`): the auditor's 0.65 to 0.69 baseline is quoted only for the reference run (`DJ`, primary specification, 1992-01-02 to 2026-11-06); any other run, this fixture included, says the audit baseline was not simulated and quotes its own harness null mean, `p_sim` and n.
 
 ## Boundaries
 
@@ -211,7 +213,7 @@ Labels, protocol, results, re-run and ledger reading are defined only here; sibl
 3. **Frictions and benchmark.** Only R8 charges costs (10 bps per side, cash earns zero, next-close execution); its benchmark is a price index without dividends, which favours the strategy. No slippage, taxes or borrowing (long/short variant) are modelled.
 4. **R1 null mis-specified** (Step 4.1): the label follows the pre-registered 0.5 null; the mechanical baseline is 0.65 to 0.69.
 5. **Exploratory group definitions** (DEV-11) make every confirmed-versus-single comparison unusable as evidence until v3.
-6. **Governance gaps recorded by R11.** The table and the first runs entered git in one commit, so pre-registration is internally consistent but has no external timestamp; INC-01 collapsed the first ledger run; the scoped marker bug FIX-01 left a wrong `table_scoped` in both runs' notes. Protection rested on the whole-file hash, which matched.
+6. **Governance gaps.** Pre-registration is git-verifiable for the table text: `analysis/decision_table.md` v2 (sha256 `c8675eff...`) was committed in `da6427c` at 06:09 UTC on 2026-11-08, before the first label-driving run at 06:26 UTC (`protocol_deviations.md` header); the companion `decision_table.sha256` still held the v1 hash at that commit and was updated only in `3770aa1` at 06:33 UTC together with the harness and the runs, so the external timestamp covers the table content but not the stored hash. R11's one-commit statement in `backtest_audit.md` section 1 predates this check. INC-01 collapsed the first ledger run; the scoped marker bug FIX-01 left a wrong `table_scoped` in both runs' notes. Protection rested on the whole-file hash, which matched.
 7. **Volume caveat wording.** The frozen table says sparse or zero before 2000; the data show level breaks instead; the 2000 start stands as pre-registered.
 8. **Overlapping windows** at the 60-session and 120-session backtest horizons shrink effective n; only the cluster bootstrap adjusts for it.
 9. **Not advice.** A label describes how a mechanical rule behaved on past closes. It is not a forecast and not investment advice.

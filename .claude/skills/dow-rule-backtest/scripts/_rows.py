@@ -22,7 +22,7 @@ _BOUND = re.compile(r"refute_bound=([-\d.]+|n/a) vs null ([-\d.]+)")
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="Print rule-backtest rows; --rerun runs dow backtest.")
-    ap.add_argument("--rule", default="all", help="R1..R8 or all")
+    ap.add_argument("--rule", default="all", type=str.upper, choices=[*RULES, "ALL"])
     ap.add_argument("--pair", action="append", choices=["DJ", "SP_IYT"], default=None)
     for flag, text in (
         ("--table", "rule_status_table.md (default analysis/rule_status_table.md)"),

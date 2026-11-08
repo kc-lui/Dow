@@ -11,14 +11,14 @@ Dow Theory as a Claude Code subagent (`dow-theory`) and six `dow-*` skills. The 
 | `dow-trend-classification` | `.claude/skills/dow-trend-classification/` | 98 | 93 | 96 | 2 | passed |
 | `dow-confirmation-and-line` | `.claude/skills/dow-confirmation-and-line/` | 98 | 96 | 97 | 2 | passed |
 | `dow-levels-and-chart` | `.claude/skills/dow-levels-and-chart/` | 98 | 96 | 97 | 2 | passed |
-| `dow-rule-backtest` | `.claude/skills/dow-rule-backtest/` | 98 | pending | pending | pending | in review |
+| `dow-rule-backtest` | `.claude/skills/dow-rule-backtest/` | 98 | 95 | 96 | 2 | passed |
 | `dow-theory` agent | `.claude/agents/dow-theory.md` | n/a | n/a | n/a | n/a | golden run: pending |
 
 Each skill must pass a dual-axis review with a gate of 90. Scripts-backed skills weight the axes 0.5 and 0.5. The knowledge-only skill weights them 0.35 and 0.65 (see `docs/team_design.md`, section 3). Sources: the final scores are in `reports/skill_review_dow-*_2026-11-08_*.json` and the LLM scores in `reports/llm_review_dow-*.json`.
 
 1. `dow-theory-sources` passed in round 3b. Round 3b is one extra round beyond the three-round cap, granted because round-3 blockers were project-state drift. The ledger records the exception in `analysis/skill_boundary_ledger.md`.
 
-`dow-rule-backtest` has an auto-axis review only (`reports/skill_review_dow-rule-backtest_2026-11-08_163042.json`). Its LLM review is pending.
+`dow-rule-backtest` passed in round 2 (`reports/llm_review_dow-rule-backtest.json`, LLM 95; merged 96 in the latest `reports/skill_review_dow-rule-backtest_*.json`).
 
 ## What the agent can do
 
@@ -128,7 +128,7 @@ The work followed five phases, each with a team role and a gate (`docs/team_desi
 - **P3 algorithms:** swings, state machine, lines, confirmation, levels and chart, implemented in `src/dowtheory/`. The frozen contract (`docs/specs/algorithm_contract.md`) was reviewed against the code (`reports/spec_review_p3.md`), and amendments A1 to A9 followed.
 - **P4 rule backtests:** a pre-registered protocol, the run, and an independent methodology audit (`reports/backtest_audit.md`).
 - **P5 skills:** six skills, generated one at a time, each reviewed to a score of at least 90.
-- **P6 agent and P7 golden run and install:** the routing agent, then the golden run and global install. Both are pending.
+- **P6 agent and P7 golden run and install:** the routing agent (`.claude/agents/dow-theory.md`), a six-question golden run graded by an independent Reality Checker (`analysis/agent_verification_sample.md`), then the global install (`cp -R`, byte-identical check, zero `/Users/` paths).
 
 Source quotes: 530 quotes were checked against their source pages. 504 match word for word, 16 differ in minor typography, one misquote was fixed, five were not found at the cited URL, and four pages were unreachable (`reports/quote_audit_p1.md`).
 
@@ -138,7 +138,15 @@ Protocol: the backtest protocol is `analysis/decision_table.md`. Its whole-file 
 
 Skill gate: a skill passes at a dual-axis score of at least 90, within three rounds. The author and the reviewer must be different agent instances. Each skill's `check_labels.py` and `check_quotes.py` results are recorded in its review.
 
-Test status: the last recorded unit test count is 297 (commit `77816e3`). This README did not re-run the test suite, the label check or the quote check, because the environment for this pass had no shell. Run the commands below to verify.
+Gate outputs at the final commit (run by the lead on 2026-11-08):
+
+```
+341 passed in 36.19s
+SUMMARY errors=0 warnings=7 info=14
+STATUS PASS
+ALL CLEAN   (scripts/check_quotes.py)
+ALL CLEAN   (scripts/check_labels.py)
+```
 
 ## Usage
 
@@ -234,6 +242,6 @@ outputs/
 - **Unadjusted indices.** Index and ETF prices exclude dividends, so the buy-and-hold comparison favours the strategy.
 - **Second-hand Rhea.** Rhea's text was read through the Wiley reprint excerpt and through secondary pages, not in the original.
 - **Tool-extracted quotes.** Quotes were extracted with tools and checked by exact string match. The Edwards-Magee and Kirkpatrick-Dahlquist quotes were checked through Google Books snippets, not full text.
-- **Pre-registration provenance.** The protocol deviations log says the decision table was committed in `da6427c` before the first run. The methodology audit reports that the table first entered the repository in `3770aa1`, after the runs. Git timestamps therefore do not confirm pre-registration (`reports/backtest_audit.md`, section 1).
+- **Pre-registration provenance.** Verified by git: the v2 decision table text (sha256 `c8675eff…`) is in commit `da6427c` (2026-11-08 06:09 UTC), before the first label-driving run at 06:26 UTC; only the `.sha256` companion file lagged until `3770aa1` (06:33 UTC). The audit's one-commit sentence (`reports/backtest_audit.md`, section 1) predates this check and is superseded by the header of `analysis/protocol_deviations.md`. Future runs: commit the table and its hash file together before the first run.
 - **Chart legibility.** In the saved chart, signal labels overlap, and the defense-line label is hard to read against the price line.
 - **Not advice.** The output describes trend state and evidence. It is not investment advice.

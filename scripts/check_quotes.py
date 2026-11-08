@@ -38,7 +38,7 @@ DEFAULT_GLOBS = [
     ".claude/skills/**/SKILL.md",
     ".claude/skills/**/references/*.md",
     ".claude/agents/*.md",
-    "analysis/agent_verification_sample.md",  # protocol/decision docs are not quote-bearing content
+    # analysis/agent_verification_sample.md holds verbatim agent transcripts graded by R17; excluded from the default scan
 ]
 MIN_WORDS = 4
 

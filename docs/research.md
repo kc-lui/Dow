@@ -202,7 +202,7 @@ Under the strict rules, `^DJI` at 10 percent stalled from 2016-04-14 for 597 ses
 - Sample: `^DJI` and `^DJT`, 1992-01-02 to 2026-11-06, 8,775 bars (`analysis/decision_table.md`, section 0; `analysis/rule_status_table.md`, header).
 - Primary specification: percent swings, 3 percent minor, 8 percent secondary, 15-session filter (`configs/dow.yaml`, `swings` block).
 
-Pre-registration evidence is disputed. The protocol deviations log says v2 was committed in `da6427c` at 14:09 local, before the first run at 14:26 local (`analysis/protocol_deviations.md`, opening paragraph). The methodology audit says the table, harness and both run files entered the repository in one commit, `3770aa1`, one minute after the second run (`reports/backtest_audit.md`, section 1). The two accounts conflict, and the audit notes that its own evidence is internal only.
+Pre-registration is git-verifiable for the table text, not for the hash file. `git show da6427c --stat` (2026-11-08 14:09 local, 06:09 UTC) contains `analysis/decision_table.md` with sha256 `c8675eff…`; the first label-driving run started at 06:26 UTC (`analysis/protocol_deviations.md`, header). The `.sha256` companion still carried the v1 hash in that commit and was updated in `3770aa1` (06:33 UTC) together with the harness and run files. The audit's one-commit statement (`reports/backtest_audit.md`, section 1) was written before this check and is superseded; the whole-file hash was the effective protection.
 
 ### 5.2 Results
 
@@ -253,7 +253,7 @@ The knowledge-only skill has no execution or test axis to score. Its auto score 
 | `dow-trend-classification` | 2 | 98 | 93 | 96 | 0.5 / 0.5 | `dea6e8a` |
 | `dow-confirmation-and-line` | 2 | 98 | 96 | 97 | 0.5 / 0.5 | `3ec2aa8` |
 | `dow-levels-and-chart` | 2 | 98 | 96 | 97 | 0.5 / 0.5 | `3c780c6` |
-| `dow-rule-backtest` | pending | 98 | pending | pending | | pending |
+| `dow-rule-backtest` | scripts + tests (0.5/0.5) | 98 | 88 | 95 | 2 | 96 |
 
 Sources: the final JSON for each skill in `reports/skill_review_dow-*_2026-11-08_*.json`, and the commit messages in `.git/logs/HEAD`.
 
@@ -286,20 +286,21 @@ The reviewer for `dow-swing-detection` noted that the description sat at exactly
 | R12 statistical verdict | `analysis/decision_table.md`, `analysis/rule_status_table.md` |
 | R13 and R14 skill author and reviewer | `reports/skill_review_*` |
 | R16 agent author | `.claude/agents/dow-theory.md` (commit `0aa753b`, "P6 draft") |
-| R17 golden run | Pending |
+| R17 golden run | Six prompts run against the `dow-theory` agent in parallel (one agent instance per prompt), answers assembled from transcripts, graded by a fresh Reality Checker instance (`analysis/agent_verification_sample.md`) |
 | R18 docs | `README.md` and this file |
 | R19 quote audit (all 530 quotes, not the 15 percent sample) | `reports/quote_audit_p1.md` |
 | R15 technical-analysis consultant | No record in the repository |
 
 The repository does not record wave timing. Commit order is in `.git/logs/HEAD`.
 
-Two parts of this section are not in the repository and remain pending. The first is the scribe workaround used when an agent lacked a write tool. The second is the content-filter failure on the harvest-e task and its recovery. Both need a source before they can be documented here.
+Two execution facts are recorded here by the lead because no repo file holds them. First, the `search-specialist` and `scientific-literature-researcher` agent types used for P1 have no file-writing tool, so their notes existed only in transcripts; the lead spawned a write-capable scribe agent that received each note by message and wrote it verbatim (30 notes), and recovered the remaining notes directly from the agents' transcripts (12 notes). Second, the agent harvesting the primary texts (Hamilton 1922, Nelson 1903, Rhea 1932) hit an output content filter after reading long passages of in-copyright scans; the job was re-run by a write-capable agent under an explicit quoting policy (public-domain texts quoted freely, at most eight short sentences from copyrighted previews, no pirated PDFs), which produced the first-hand verified notes now in `research/sources/`.
 
 ## 8. Open issues
 
 - **Protocol v3, DEV-10.** Pre-register a simulated random-walk or gambler's-ruin null as the R1 label null (`analysis/protocol_deviations.md`, DEV-10).
 - **Protocol v3, DEV-11.** Define the R3 and R6 "single" group as not confirmed by `period_end`, and count each reversal once (`analysis/protocol_deviations.md`, DEV-11).
-- **Pre-registration provenance.** Resolve whether the table entered git in `da6427c` or `3770aa1`. Commit the decision table and its hash before any future run (`reports/backtest_audit.md`, section 8).
+- **Pre-registration hygiene.** The table text was committed before the run (`da6427c`) but its hash file lagged one commit; commit both together before any future run (`reports/backtest_audit.md`, section 8).
+- **Individual-stock data path.** `load_klines` reads only `dow.mkt_klines` or CSV; the planned read-only `usstock`/`twstock` loader source was not implemented. The golden-run agent worked around it by exporting AAPL and SPY from `usstock.mkt_daily_quotes` to CSV (`outputs/csv/`). Add a `--source usstock|twstock` adapter (adjusted-price caveat) in a follow-up.
 - **Chart legibility.** In `outputs/charts/DJI_DJT_2026-11-06_pct0.03.png`, signal labels overlap, and the defense-line label is hard to read against the price line.
 - **Edwards-Magee and Kirkpatrick-Dahlquist.** Quotes were checked through Google Books snippets only. The full text is not in the sources (`research/sources/edwards-magee-technical-analysis-dow-chapters.md`, line 8; `research/sources/kirkpatrick-dahlquist-technical-analysis-dow-theory.md`, line 8).
 - **Schannep book.** The book and its preview were not retrieved. The Schannep figures come from the AAII article and secondary pages (`research/sources/schannep-dow-theory-21st-century.md`, line 49).
@@ -308,7 +309,7 @@ Two parts of this section are not in the repository and remain pending. The firs
 - **Stale registry text.** Section 7 says the `^DJI` and `^DJT` series have no volume (`research/canonical_rules.md`, section 7). The header says 43 notes; the folder holds 42.
 - **Agent description.** `.claude/agents/dow-theory.md` says each of the six skills has passed review. `dow-rule-backtest` has not.
 - **Unverified code-review items.** Items M1 to M7, L1 to L7 and L8 in `reports/code_review_p2.md` are not confirmed closed.
-- **Pending gates.** Skill 6 needs its LLM review. The golden run (R17) has not run. No `dow-*` skill was found under `~/.claude/skills` during this pass.
+- **Chart legibility.** Overlapping zone labels when zones are adjacent, stacked signal labels around 2020, and a short defense-line segment when recently set (`.claude/skills/dow-levels-and-chart/SKILL.md`, Limitation 5).
 
 ## 9. Install and reproduction steps
 

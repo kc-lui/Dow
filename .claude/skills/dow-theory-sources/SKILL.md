@@ -144,7 +144,7 @@ Chain: Dow (editorials 1900 to 1902, read in Nelson 1903 and in Hamilton 1922) �
 | Three-eighths | Dow, Jul 1901, stated for stocks | first-hand | 【literature-disputed】with Rhea |
 | 5 percent line, two to three weeks | Rhea 1932 | second-hand | 【literature-consensus】one lineage |
 | 3 percent filter | Rhea 1932 | second-hand; the status-label key is `rhea_3pct_filter` (contract A9, renamed from `hamilton_3pct_filter`) | 【single-source】 |
-| Confirmation | Hamilton 1922 | first-hand; not Dow | 【literature-consensus】 |
+| Confirmation | Hamilton 1922 in the first-hand notes; origin disputed, thismatter-dow-theory:Q10 credits Dow while Russell and the nelson note credit Hamilton | first-hand (Hamilton) | 【literature-consensus】on the rule, origin disputed |
 | Closing prices only | Hamilton 1922; Rhea hypothesis via brown-goetzmann-kumar-1998:Q12 | first-hand | 【literature-consensus】 |
 | Three phases | Rhea 1932 (Hamilton 1922 has no schema) | second-hand; names in brown-goetzmann-kumar-1998:Q10,Q11 | 【literature-disputed】on names |
 | Schaefer 50 percent principle and no-limit secondaries | Russell essay | first-hand paraphrase in a newsletter | 【single-source】 |
@@ -191,7 +191,7 @@ Verdict: `R-006` and `R-007`, 【literature-disputed】, no consensus figure. Po
 
 ### Example 2: Did Dow require two-average confirmation?
 
-Verdict: `R-032`, 【literature-consensus】that confirmation is a Dow Theory rule, but its author is Hamilton. Positions: Hamilton states it first-hand (hamilton-1922-stock-market-barometer:Q17, Q21, Q25); Rhea restates it: "The movement of one price average must be confirmed by the other before reliable inferences may be drawn." (rhea-1932-the-dow-theory:Q6); Russell credits Hamilton (russell-history-of-the-dow-theory:Q4); Nelson's Dow chapters only say to watch the averages (nelson-1903-abc-of-stock-speculation:Q5) and the nelson note finds no two-average rule; thismatter credits Dow (thismatter-dow-theory:Q10, partial access). Provenance: Hamilton 1922, first-hand. Lag: no fixed window, `R-033`. Hand-off: `pair_confirm` behaviour → `dow-confirmation-and-line`.
+Verdict: `R-032`, 【literature-consensus】that confirmation is a Dow Theory rule, while its origin is disputed (Step 3: thismatter credits Dow, Russell and the nelson note credit Hamilton). Positions: Hamilton states it first-hand (hamilton-1922-stock-market-barometer:Q17, Q21, Q25); Rhea restates it: "The movement of one price average must be confirmed by the other before reliable inferences may be drawn." (rhea-1932-the-dow-theory:Q6); Russell credits Hamilton (russell-history-of-the-dow-theory:Q4); Nelson's Dow chapters only say to watch the averages (nelson-1903-abc-of-stock-speculation:Q5) and the nelson note finds no two-average rule; thismatter credits Dow (thismatter-dow-theory:Q10, partial access). Provenance: earliest first-hand statement is Hamilton 1922; the Dow attribution rests on a partial-access educator page. Lag: no fixed window, `R-033`. Hand-off: `pair_confirm` behaviour → `dow-confirmation-and-line`.
 
 ### Example 3: Does Dow Theory beat buy-and-hold?
 

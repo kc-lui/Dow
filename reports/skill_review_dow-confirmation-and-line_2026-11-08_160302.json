@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-11-08 16:03:02",
+  "seed": null,
+  "selection_mode": "manual",
+  "skill_name": "dow-confirmation-and-line",
+  "skill_file": "skills/dow-confirmation-and-line/SKILL.md",
+  "auto_review": {
+    "skill_name": "dow-confirmation-and-line",
+    "skill_file": "skills/dow-confirmation-and-line/SKILL.md",
+    "skill_type": "execution_or_hybrid",
+    "score": 98,
+    "score_breakdown": {
+      "metadata_use_case": 20,
+      "workflow_coverage": 25,
+      "execution_safety_reproducibility": 23,
+      "supporting_artifacts": 10,
+      "test_health": 20
+    },
+    "findings": [],
+    "improvements_required": false,
+    "improvement_items": [],
+    "test_status": "passed",
+    "test_command": "uv run --extra dev pytest /Users/lui/workspace/Dow/.claude/skills/dow-confirmation-and-line/tests -q",
+    "test_output": "..............                                                           [100%]\n14 passed in 4.33s\n\nwarning: `VIRTUAL_ENV=/Users/lui/.cache/uv/environments-v2/run-dual-axis-review-6327a6ab205cd933` does not match the project environment path `/Users/lui/workspace/Dow/.venv` and will be ignored; use `--active` to target the active environment instead"
+  },
+  "llm_review": {
+    "provided": true,
+    "source_file": "/Users/lui/workspace/Dow/reports/llm_review_dow-confirmation-and-line.json",
+    "score": 96,
+    "summary": "Round 2 closes all nine round-1 findings and I re-verified each against the files, not the author's note. references/evidence.md is now label-clean (check_labels ALL CLEAN when the file is passed explicitly, matching the three passed siblings). SKILL.md line 73 now states the no-window reading as an implementation fact without ranking the Hamilton and Rhea positions, and reads the registry's R-033 'partly' as the algorithmizable column with the contract column quoted correctly. Step 7 states n = 15 events from 12 reversals with the DEV-11 double count. Step 6 and Limitation 6 add the fewer-than-three-swings None condition, which matches confirmation.py lines 162-164. Step 4 and Output say explicitly that the wrapper's signals table carries no LINE_BREAKOUT_* rows and that breakouts are read from the lines table. The description writes Dow lines without quotation marks. confirm.py (still exactly 60 lines) raises a clean argparse error on an empty inner join. make_pair_sample.py gained --check, exits 0 against the committed CSVs, and a test pins the fixtures to their generator. Five new tests cover the pending status at two early ends, the same-side PRIMARY-versus-SUSPECT non_confirmation at --end 2021-06-21 (plus the confirmed BULL_PRIMARY pair eleven sessions earlier), volume_confirms null on a 30-bar window in both JSON and text, the empty-join error, and the generator check. Re-run results: skill pytest 14 passed (the ClickHouse-gated ^DJI/^DJT example test ran and passed, so every quoted status, match date, line count and breakout date in Examples 2 and 3 still holds against data through 2026-11-06); check_labels ALL CLEAN on SKILL.md and on references/evidence.md; check_quotes ALL CLEAN on both; ruff check and ruff format --check clean; the CSV Example 1 output reproduces byte for byte; no absolute paths. All round-1 fidelity conclusions stand (quotes, R-ids, labels, algorithm descriptions against confirmation.py, line.py, contract A6/A7 and Deviations 9 to 13, Step 7 figures against rule_status_table and rule_R3/R6/R7, agent-defined labelling of the 15-session floor and drift filter, side-by-side Hamilton/Rhea presentation). The Resources entry for tests was updated to describe the new assertions. One cosmetic nit remains and does not affect the verdict; a careful domain expert would sign off.",
+    "findings": [
+      {
+        "severity": "low",
+        "path": "skills/dow-confirmation-and-line/references/evidence.md",
+        "line": 61,
+        "message": "The Hamilton 1914 paraphrase (66 and 71 trading days with 3 and 4 point ranges) is filed under `R-024` only; the point ranges belong to the band-percent row `R-023`, where SKILL.md Step 4 cites them (registry section 2.3), while the day counts belong to `R-024` (section 2.4).",
+        "improvement": "Write 'under `R-023` (points) and `R-024` (days), 【literature-consensus】 one lineage, points not percent' so the evidence row and the SKILL.md table cite the same rule ids."
+      }
+    ]
+  },
+  "final_review": {
+    "score": 97,
+    "weights": {
+      "auto_weight": 0.5,
+      "llm_weight": 0.5
+    },
+    "improvements_required": false,
+    "improvement_items": [],
+    "findings": [
+      {
+        "severity": "low",
+        "path": "skills/dow-confirmation-and-line/references/evidence.md",
+        "line": 61,
+        "message": "The Hamilton 1914 paraphrase (66 and 71 trading days with 3 and 4 point ranges) is filed under `R-024` only; the point ranges belong to the band-percent row `R-023`, where SKILL.md Step 4 cites them (registry section 2.3), while the day counts belong to `R-024` (section 2.4).",
+        "improvement": "Write 'under `R-023` (points) and `R-024` (days), 【literature-consensus】 one lineage, points not percent' so the evidence row and the SKILL.md table cite the same rule ids.",
+        "axis": "llm"
+      }
+    ]
+  },
+  "llm_prompt_file": null
+}

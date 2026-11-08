@@ -27,8 +27,8 @@ Use this skill for questions about the literature, not about the project's algor
 - Is Z canonical, disputed, a single-source claim, or a modern variant?
 - What does a label such as 【literature-disputed】 or an id such as `R-006` mean?
 - Does Dow Theory beat buy-and-hold, and how reliable is each study?
-- Is the Dow defense line (道氏防線) a Dow Theory term?
-- What is the English term for 主要趨勢, 次要趨勢, 小型趨勢, 支撐線, 壓力線 or 盤整?
+- Is the Dow defense line a Dow Theory term?
+- What is the English term for a Chinese Dow Theory word? See the Step 1 mapping line.
 
 Do not use it to detect swings, classify a trend, draw a chart or run a backtest. Those are sibling skills (see Boundaries).
 
@@ -56,7 +56,7 @@ Map the user's word to the project term, then to the rule id that defines it. Ch
 | Trend by highs and lows | Dow: bull period while each high exceeds prior highs; bear period once a low undercuts prior lows. Rhea and educators require both highs and lows | R-016 | 【literature-consensus】 |
 | Line | Narrow sideways range in both averages, read as accumulation or distribution | R-022 to R-027 | 【literature-consensus】on definition; band and duration figures one lineage (Step 3) |
 | Confirmation | A move in one average is unreliable until the other average moves the same way; no fixed lag | R-032, R-033, R-034 | 【literature-consensus】 |
-| Non-confirmation | The two averages diverge; a warning, not a signal in itself | R-032 (wikipedia-en Q11) | 【literature-consensus】 |
+| Non-confirmation | The two averages diverge; a warning, not a signal in itself | R-032 (wikipedia-en-dow-theory:Q11) | 【literature-consensus】 |
 | Dow defense line | The last secondary low in a bull trend or secondary high in a bear trend, used as a break level. Project construct; definition lives in `dow-trend-classification` | R-045 | 【agent-defined】 |
 | Support, resistance, trendline | Educator constructs adjacent to Dow Theory; no drawing rule in Dow, Hamilton or Rhea | R-049 to R-055 | 【single-source】or educator-only consensus per row |
 | Three phases | Rhea's schema; two naming schemes; no measurable rule | R-042 to R-044 | 【literature-consensus】on the count, 【literature-disputed】on names |
@@ -83,7 +83,7 @@ Secondary duration, `R-006` and `R-007`, 【literature-disputed】:
 | Dow, Jan 1902 | "The secondary movement covers a period ranging from ten days to sixty days, averaging probably between thirty and forty days." (hamilton-1922-stock-market-barometer:Q6) | also nelson-1903-abc-of-stock-speculation:Q6 |
 | Hamilton | "this longer range is exceedingly rare and that the duration may be appreciably less than forty days" (hamilton-1922-stock-market-barometer:Q22) | first-hand |
 | Rhea | "usually lasting from three weeks to as many months" (rhea-1932-the-dow-theory:Q5) | via Wiley reprint; Blay reads the usually as allowing shorter (thedowtheory-rhea-three-weeks:Q2) |
-| Rhea alt. (`R-006`; the 15-day and 5 percent screen is filed under `R-013`) | 3 to 12 weeks; 15-day and 5 percent screen in his statistics | rhea note paraphrase via Blay, unverified |
+| Rhea alt. (`R-006` floor, `R-007` ceiling; the 15-day and 5 percent screen is filed under `R-013`) | 3 to 12 weeks; 15-day and 5 percent screen in his statistics | rhea note paraphrase via Blay, unverified |
 | Schannep (`R-006`) | "It can be as short as 8 trading days (or even less following capitulation)." (thedowtheory-lines-special-issue:Q8) | the face-off page says "10 days, or even less, is enough to qualify a movement as a secondary reaction." (thedowtheory-schannep-vs-classical:Q3) |
 | Schaefer | no limit on secondaries | russell-history-of-the-dow-theory:Q6 |
 
@@ -96,7 +96,7 @@ Secondary retracement, `R-008` to `R-011`, 【literature-disputed】:
 | Rhea (`R-008`, `R-009`) | "retraces from 33 percent to 66 percent of the primary price change since the termination of the last preceding secondary reaction" (rhea-1932-the-dow-theory:Q5) | base = move since last secondary |
 | Russell on Rhea | "retrace one-third to two-thirds of the preceding uncorrected primary advance" (russell-history-of-the-dow-theory:Q5) | rounding, not Rhea's wording |
 | Taiwan educator (`R-009`) | 1/3 to 1/2 of the prior swing | stockfeel-dow-theory:Q6 |
-| Schannep (`R-012`) | "that it shall exceed 3% on either of the averages." (schannep-dow-theory-21st-century:Q1) | replaces the fraction; "a secondary trend will usually extend at least 4% on both the industrials and transportation averages." (schannep-dow-theory-21st-century:Q2) |
+| Schannep (`R-012`) | "that it shall exceed 3% on either of the averages." (schannep-dow-theory-21st-century:Q1) | replaces the fraction; "a secondary trend will usually extend at least 4% on both the industrials and transportation averages." (schannep-dow-theory-21st-century:Q2) 【single-source】 |
 | Schaefer | none | russell-history-of-the-dow-theory paraphrase |
 
 Primary duration, `R-002` to `R-004`, 【literature-disputed】:
@@ -104,11 +104,12 @@ Primary duration, `R-002` to `R-004`, 【literature-disputed】:
 | Position | Figure | Source |
 |---|---|---|
 | Dow, Dec 1900 | main movement covering at least four years | hamilton-1922-stock-market-barometer:Q8; nelson-1903-abc-of-stock-speculation:Q2 |
-| Dow, Jan 1902 | great swing of four to six years | hamilton-1922-stock-market-barometer:Q6; nelson-1903-abc-of-stock-speculation:Q6; "Bull markets and bear markets run four and five years at a time." (nelson-1903-abc-of-stock-speculation:Q1) |
-| Hamilton | before Dow never four to six years, "rarely three years and oftener less than two" (hamilton-1922-stock-market-barometer:Q7); at least a year (Q2) | first-hand rejection of Dow's figure |
+| Dow, Jan 1902 | great swing of four to six years | hamilton-1922-stock-market-barometer:Q6; nelson-1903-abc-of-stock-speculation:Q6 |
+| Dow, undated (Nelson Ch. VI essential points, `R-003`) | "Bull markets and bear markets run four and five years at a time." (nelson-1903-abc-of-stock-speculation:Q1) | first item of an undated list; no editorial date given |
+| Hamilton | before Dow never four to six years, "rarely three years and oftener less than two" (hamilton-1922-stock-market-barometer:Q7); at least a year (hamilton-1922-stock-market-barometer:Q2) | first-hand rejection of Dow's figure |
 | Hamilton averages | "The average duration of seven major bull swings is twenty-five months; while the average duration of seven major bear swings is fifteen months." (hamilton-1922-stock-market-barometer:Q13) | 1900 to 1923; 【single-source】 R-004 |
 | Rhea | "extending over periods that have varied from less than a year to several years" (rhea-1932-the-dow-theory:Q4) | via Wiley |
-| Educators | months to years; one year or more | stockcharts-chartschool-dow-theory:Q1; stockfeel-dow-theory:Q4; wikipedia-en-dow-theory:Q2 |
+| Educators and encyclopedias | months to years; under a year to several years; one year or more | stockcharts-chartschool-dow-theory:Q1; wikipedia-en-dow-theory:Q2 (same position as Rhea); stockfeel-dow-theory:Q4 |
 
 Lines, `R-022` to `R-025`:
 
@@ -125,7 +126,7 @@ Filters and confirmation:
 |---|---|---|---|
 | 3 percent filter, `R-013` | "a rally or a decline is one or more daily movements resulting in a net reversal of direction exceeding 3 percent of the price of either average." (rhea-1932-the-dow-theory:Q7) | Rhea only, reused by Schannep; absent from Dow and Hamilton | 【single-source】 |
 | Confirmation, `R-032` | "One of the shortest ways of going wrong is to accept an indication by one average which has not been clearly confirmed by the other." (hamilton-1922-stock-market-barometer:Q21) | Hamilton first; "it was Hamilton who first defined the confirmation principle of the Averages" (russell-history-of-the-dow-theory:Q4) | 【literature-consensus】 |
-| Dow on averages | "He should observe the movement of the general market as indicated by the averages published daily" (nelson-1903-abc-of-stock-speculation:Q5) | Dow watches the averages; no two-average rule in Nelson | 【literature-consensus】that Dow did not state it |
+| Dow on averages | "He should observe the movement of the general market as indicated by the averages published daily" (nelson-1903-abc-of-stock-speculation:Q5) | Dow watches the averages; no two-average rule in Nelson. Origin is contested: thismatter-dow-theory:Q10 credits Dow, while russell-history-of-the-dow-theory:Q4 and the nelson note credit Hamilton | 【literature-disputed】on origin only |
 | Lag, `R-033` | "It is sufficient if they take the same direction." (hamilton-1922-stock-market-barometer:Q25) | no maximum lag anywhere | 【literature-consensus】 |
 | Schannep pair, `R-035` | "It uses three indices (it includes the S&P), instead of just two, whereas it requires just two indices to confirm." (thedowtheory-schannep-vs-classical:Q2) | one promotional page | 【single-source】 |
 | Bull and bear status, `R-021` | "The levels at which I consider that a market attains bull- or bear-market status are +19% and –16% as mentioned previously." (aaii-dow-theory-21st-century:Q8) | Schannep, echoed by Blay | 【single-source】 |
@@ -137,12 +138,12 @@ Chain: Dow (editorials 1900 to 1902, read in Nelson 1903 and in Hamilton 1922) �
 | Claim | Earliest traceable | Verification status | Label |
 |---|---|---|---|
 | Three movements | Dow, Dec 1900 | first-hand in nelson and hamilton | 【literature-consensus】 |
-| Dow Theory as a name | Nelson's footnote; "But Dow himself never once used the term." (russell-history-of-the-dow-theory:Q2) and "Dow himself never used the term Dow theory nor presented it as a trading system." (wikipedia-en-dow-theory:Q1) | first-hand (russell) and partial (wikipedia) | 【literature-consensus】 |
+| Dow Theory as a name | Nelson's footnote; "But Dow himself never once used the term." (russell-history-of-the-dow-theory:Q2) and "Dow himself never used the term Dow theory nor presented it as a trading system." (wikipedia-en-dow-theory:Q1) | first-hand (russell) and partial (wikipedia); the quotes support only that Dow never used the term. Who coined it is unsettled: Nelson's footnote per the nelson note, while wikipedia-zh credits Hamilton, Rhea and Schaefer, which conflicts with Russell (registry section 3) | provenance note, no rule id, no label |
 | Ten to sixty days, four to six years | Dow, Jan 1902 | first-hand; Hamilton's own rejection first-hand | 【literature-disputed】 |
 | Three weeks to three months, 33 to 66 percent | Rhea 1932 | second-hand only (Wiley excerpt, Blay, Russell paraphrase) | 【literature-disputed】with Dow |
 | Three-eighths | Dow, Jul 1901, stated for stocks | first-hand | 【literature-disputed】with Rhea |
 | 5 percent line, two to three weeks | Rhea 1932 | second-hand | 【literature-consensus】one lineage |
-| 3 percent filter | Rhea 1932 | second-hand; the contract key `hamilton_3pct_filter` misattributes it | 【single-source】 |
+| 3 percent filter | Rhea 1932 | second-hand; the status-label key is `rhea_3pct_filter` (contract A9, renamed from `hamilton_3pct_filter`) | 【single-source】 |
 | Confirmation | Hamilton 1922 | first-hand; not Dow | 【literature-consensus】 |
 | Closing prices only | Hamilton 1922; Rhea hypothesis via brown-goetzmann-kumar-1998:Q12 | first-hand | 【literature-consensus】 |
 | Three phases | Rhea 1932 (Hamilton 1922 has no schema) | second-hand; names in brown-goetzmann-kumar-1998:Q10,Q11 | 【literature-disputed】on names |
@@ -154,12 +155,12 @@ Chain: Dow (editorials 1900 to 1902, read in Nelson 1903 and in Hamilton 1922) �
 |---|---|---|---|
 | Cowles 1933, Econometrica | Hamilton "would have earned a return, including dividend and interest income, of 12 per cent per annum" (cowles-1933-can-forecasters-forecast:Q11) while the industrials "showed a return of 15.5 per cent per annum" (cowles-1933-can-forecasters-forecast:Q12); "In all, 45 of his changes of position were unsuccessful, 45 successful." (cowles-1933-can-forecasters-forecast:Q21) | full text; no risk adjustment; rails and industrials traded together so confirmation is untested | 【single-source】full text, verified yes |
 | Cowles citation year | Brown, Goetzmann and Kumar and wikipedia-en cite 1934; kirkpatrick-dahlquist first edition writes "Cowles III ( 1937 ) performed the first formal test of the profitability" (kirkpatrick-dahlquist-technical-analysis-dow-theory:Q8); the project's bibliographic check against the Econometrica PDF gives 1933 | project check, not a literature position | 【agent-defined】bibliographic check |
-| Brown, Goetzmann, Kumar 1998 | "In total, Hamilton was right 110 times and wrong 74 times, by our count." (brown-goetzmann-kumar-1998:Q23); raw return 10.73 percent against 10.75 percent (Q29); "the Hamilton portfolio has a higher Sharpe ratio (0.559 compared with 0.456) and a positive Jensen measure of 4.04 percent" (brown-goetzmann-kumar-1998:Q30); beta 0.326 (Q31); bull calls "are followed by a 1.5 percent price increase over the next 40 days on average" (brown-goetzmann-kumar-1998:Q33) | full text, working-paper draft; one scorer; text says 9.95 where the table says 10.73; out-of-sample is a neural-net imitation, not Dow rules; "normal trading frictions would preclude using the Theory to generate large excess returns" (brown-goetzmann-kumar-1998:Q41) | 【single-source】full text, verified yes |
+| Brown, Goetzmann, Kumar 1998 | "In total, Hamilton was right 110 times and wrong 74 times, by our count." (brown-goetzmann-kumar-1998:Q23); raw return 10.73 percent against 10.75 percent (brown-goetzmann-kumar-1998:Q29); "the Hamilton portfolio has a higher Sharpe ratio (0.559 compared with 0.456) and a positive Jensen measure of 4.04 percent" (brown-goetzmann-kumar-1998:Q30); beta 0.326 (brown-goetzmann-kumar-1998:Q31); bull calls "are followed by a 1.5 percent price increase over the next 40 days on average" (brown-goetzmann-kumar-1998:Q33) | full text, working-paper draft; one scorer; text says 9.95 where the table says 10.73; out-of-sample is a neural-net imitation, not Dow rules; "normal trading frictions would preclude using the Theory to generate large excess returns" (brown-goetzmann-kumar-1998:Q41) | 【single-source】full text, verified yes |
 | Sideris, UNC Wilmington, about 2008 | "unsuccessful in producing a significant alpha measurement" (sideris-russell-dow-theory-thesis:Q4) | search-tool paraphrase of an unreadable PDF; its numbers conflict and must not be cited | 【single-source】unverified |
 | StockCharts 70-year claim | "Over the 70-year period, the Dow Theory system outperformed a buy-and-hold strategy by about 2% per year." (stockcharts-chartschool-dow-theory:Q11) | no author or study named; partial access | 【single-source】unidentified |
 | Schannep and Blay face-off, 1954 to 2013 | 32 trades against 24, growth of 100 dollars to 14,973 against 8,756, "outperformance of ca. 2%" (thedowtheory-schannep-vs-classical:Q10); AAII: "Historically, the traditional Dow Theory has outperformed a buy-and-hold approach by 1% to 2% a year." (schannep-dow-theory-21st-century:Q11) | promotional, newsletter vendor, unsourced; project arithmetic 【agent-defined】: the terminal values over 59 years imply about 8.9 percent against 7.9 percent a year, a gap near 1 point | 【single-source】promotional |
 
-Summary sentence to reuse for `R-062`: raw returns do not beat buy-and-hold in either full-text study, a risk-adjusted edge appears only in Brown, Goetzmann and Kumar, and every claim of a 1 to 2 percent raw edge is unsourced or promotional. The academic search log finds no peer-reviewed test after 1998. Data labels for the project's own backtests come only from `dow-rule-backtest`.
+Summary sentence to reuse for `R-062`: raw returns do not beat buy-and-hold in either full-text study, a risk-adjusted edge appears only in Brown, Goetzmann and Kumar, and every claim of a 1 to 2 percent raw edge is unsourced or promotional. The academic search log finds no peer-reviewed test after 1998. Data labels live in `../../../analysis/rule_status_table.md`: R8 hamilton_timing (`R-062`) is 【insufficient-evidence】 with 28 trades below the 30 floor, R5 secondary_duration (`R-006`, `R-007`) is 【insufficient-evidence】 after the worst-grid-point rule, and R1 trend persistence (`R-017`) is 【data-confirmed】; `dow-rule-backtest` is the authority for them.
 
 **Step 6 - State the negative result on the defense line (`R-045`, 【agent-defined】)**
 
@@ -186,7 +187,7 @@ A conversational answer, no files. Four parts:
 
 ### Example 1: How long is a secondary reaction?
 
-Verdict: `R-006` and `R-007`, 【literature-disputed】, no consensus figure. Positions: Dow 1900 two weeks to a month or more; Dow 1902 ten to sixty days averaging thirty to forty; Hamilton says over forty is exceedingly rare; Rhea usually three weeks to three months, with Blay noting the usually; Schannep eight or ten trading days; Schaefer no limit (table in Step 3). Provenance: the three-week floor is Rhea's, not Dow's or Hamilton's, and Rhea is second-hand here. Hand-off: the project records `duration_days` and applies no duration filter (`dow-swing-detection`).
+Verdict: `R-006` and `R-007`, 【literature-disputed】, no consensus figure. Positions: Dow 1900 two weeks to a month or more; Dow 1902 ten to sixty days averaging thirty to forty; Hamilton says over forty is exceedingly rare; Rhea usually three weeks to three months, with Blay noting the usually; Schannep eight or ten trading days; Schaefer no limit (table in Step 3). Provenance: the three-week floor is Rhea's, not Dow's or Hamilton's, and Rhea is second-hand here. Hand-off: the project records `duration_days` and applies no literature duration test, but the secondary zig-zag uses a causal 15-session filter (`secondary_min_sessions`, contract A1, spec `pct0.03/0.08f15`), 【agent-defined】, with parameters in `dow-swing-detection`. Data label: `../../../analysis/rule_status_table.md` row R5 secondary_duration, mapped to `R-006` and `R-007`, is 【insufficient-evidence】 after the worst-grid-point rule; `dow-rule-backtest` is the authority for it.
 
 ### Example 2: Did Dow require two-average confirmation?
 
@@ -194,9 +195,9 @@ Verdict: `R-032`, 【literature-consensus】that confirmation is a Dow Theory ru
 
 ### Example 3: Does Dow Theory beat buy-and-hold?
 
-Verdict: `R-062`, 【literature-disputed】. Positions for `R-062` (table in Step 5): Cowles 12 against 15.5 percent raw with 45 of 90 calls right, Brown, Goetzmann and Kumar raw 10.73 against 10.75 percent with Sharpe 0.559 against 0.456 and alpha 4.04 percent, Sideris no significant alpha and unverified, StockCharts about 2 percent a year from an unidentified study, Schannep 1 to 2 percent and promotional. Provenance: only Cowles and Brown, Goetzmann and Kumar are full text. Hand-off: this project's own result on 1992 onward data, with its data label, comes from `dow-rule-backtest`; until it exists, no data label applies.
+Verdict: `R-062`, 【literature-disputed】. Positions for `R-062` (table in Step 5): Cowles 12 against 15.5 percent raw with 45 of 90 calls right, Brown, Goetzmann and Kumar raw 10.73 against 10.75 percent with Sharpe 0.559 against 0.456 and alpha 4.04 percent, Sideris no significant alpha and unverified, StockCharts about 2 percent a year from an unidentified study, Schannep 1 to 2 percent and promotional. Provenance: only Cowles and Brown, Goetzmann and Kumar are full text. Hand-off: the project's own data label is in `../../../analysis/rule_status_table.md`, row R8 hamilton_timing mapped to `R-062`: 【insufficient-evidence】, 28 trades against the 30-trade floor; `dow-rule-backtest` is the authority for it.
 
-### Example 4: Is 道氏防線 a Dow Theory term?
+### Example 4: Is the Dow defense line a Dow Theory term?
 
 Verdict: `R-045`, 【agent-defined】. No source defines or names it (Step 6); the nearest published idea is Blay's stop at secondary lows, 【single-source】. The project's definition and the break rule are in `dow-trend-classification`; charts label it as agent-defined.
 
@@ -204,7 +205,7 @@ Verdict: `R-045`, 【agent-defined】. No source defines or names it (Step 6); t
 
 | Not covered here | Sibling skill |
 |---|---|
-| Swing-point detection, percentage, ATR and pivot thresholds, `confirmed_idx`, no-lookahead rule (`R-046`) | `dow-swing-detection` |
+| Swing-point detection, percentage, ATR and pivot thresholds (`R-046`), `confirmed_idx` and the no-lookahead rule (`R-020`) | `dow-swing-detection` |
 | Trend state machine, HH/HL/LH/LL signals, SUSPECT states, defense-line definition and `DEFENSE_BREAK` (`R-016` to `R-018`, `R-045`) | `dow-trend-classification` |
 | Line detection parameters, breakout rule, pair confirmation and `max_days` (`R-022` to `R-035` as code) | `dow-confirmation-and-line` |
 | Support and resistance clustering, trendline fitting, chart rendering and labels (`R-047`, `R-049` to `R-055`) | `dow-levels-and-chart` |
@@ -219,7 +220,7 @@ Glossary, label definitions, provenance and performance evidence are defined onl
 3. **No Edwards and Magee or Kirkpatrick and Dahlquist full text.** Only Google Books snippets; their glossary figures are Bassetti's later text, not the 1948 edition.
 4. **Dow's figures are for stocks.** The three-eighths and the two-point line were stated for individual stocks, not the averages; carrying them to an index is an inference.
 5. **Consensus is one lineage.** Nearly all modern sources repeat Rhea, who built on Hamilton, who quoted Dow; agreement is not independent evidence.
-6. **Performance studies are old and unlike the project's test.** Cowles and Brown, Goetzmann and Kumar score Hamilton's editorials over Cowles' own window, December 1903 to December 1929; this project's backtests use data from 1992 onward and mechanical rules, so neither study confirms or refutes the project's results.
+6. **Performance studies are old and unlike the project's test.** Cowles scores Hamilton's editorials from December 1903 to December 1929 (cowles-1933-can-forecasters-forecast:Q11) and Brown, Goetzmann and Kumar from 1902 to 1929 (brown-goetzmann-kumar-1998:Q1); this project's backtests use data from 1992 onward and mechanical rules, so neither study confirms or refutes the project's results.
 7. **Negative search is bounded.** The defense-line search used a US-only tool; absence in Chinese-language sources is not proven.
 8. **Not advice.** The skill reports what sources say about trend state. It makes no price prediction and gives no investment advice.
 

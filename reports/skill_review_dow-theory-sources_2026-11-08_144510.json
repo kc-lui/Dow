@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-11-08 14:45:10",
+  "seed": null,
+  "selection_mode": "manual",
+  "skill_name": "dow-theory-sources",
+  "skill_file": "skills/dow-theory-sources/SKILL.md",
+  "auto_review": {
+    "skill_name": "dow-theory-sources",
+    "skill_file": "skills/dow-theory-sources/SKILL.md",
+    "skill_type": "knowledge_only",
+    "score": 83,
+    "score_breakdown": {
+      "metadata_use_case": 20,
+      "workflow_coverage": 25,
+      "execution_safety_reproducibility": 17,
+      "supporting_artifacts": 9,
+      "test_health": 12
+    },
+    "findings": [],
+    "improvements_required": true,
+    "improvement_items": [],
+    "test_status": "not_applicable",
+    "test_command": null,
+    "test_output": ""
+  },
+  "llm_review": {
+    "provided": true,
+    "source_file": "/Users/lui/workspace/Dow/reports/llm_review_dow-theory-sources.json",
+    "score": 93,
+    "summary": "Round 3b (final, R14). All five in-scope round-3 findings are fixed in the current files: Example 1 now states that the project records duration_days with no literature duration test while the secondary zig-zag applies the agent-defined 15-session causal filter (secondary_min_sessions, contract A1, spec pct0.03/0.08f15), which matches configs/dow.yaml swings.secondary_min_sessions=15, algorithm_contract amendment A1 and implementation note 15, and the rule_status_table header; Example 3 and the Step 5 summary now point to analysis/rule_status_table.md rows R8 hamilton_timing (R-062, insufficient-evidence, n=28 against min_n 30) and R5 secondary_duration (R-006/R-007, insufficient-evidence under the worst-grid-point rule of decision table 1.8) and name dow-rule-backtest as the authority, and the added R1 trend-persistence (R-017, data-confirmed) reference matches the table; the Dow-on-averages row no longer labels the negative origin claim consensus and instead records the thismatter-dow-theory:Q10 against russell Q4 contest as disputed on origin only, which is exactly the R-032 disagreeing column; the 3 percent filter row now names rhea_3pct_filter as renamed under A9, and src/dowtheory/schema.py already carries rhea_3pct_filter: single-source; the Boundaries row now files thresholds under R-046 and confirmed_idx plus no-lookahead under R-020. The sixth round-3 item (ledger entry) is the project lead's task and remains open but is not scored here. Both linters return ALL CLEAN with exit 0 on SKILL.md and evidence.md. Fidelity: I resolved all 89 distinct slug:Qn pointers in SKILL.md and evidence.md and every note and Qn exists; the 21 URL and access rows in evidence.md section 1 match the notes' url and access fields; spot checks of hamilton Q7, nelson footnote, rhea hypotheses 2 and 3, Bassetti glossary provenance, cowles Q16/Q21, BGK 9.95 against 10.73, sideris conflict, stockfeel Q4/Q6, Schannep face-off Q7/Q9/Q10 and the 8.9 against 7.9 percent arithmetic all reproduce; every labelled R-id matches the registry label and the registry section numbering (0 to 7, 1.1 to 1.9) quoted in Step 2 and Resources is correct; the 42-note count matches research/sources with the registry header's 43 explained. Structure meets the contract: name and description only, Chinese trigger terms and Not covered routing, H1 plus preamble with source, labels, no advice, no prediction, the eight H2s in order, four examples, boundary table, relative paths, no /Users/. Routing: the Workflow and Examples give correct labelled side-by-side answers for secondary duration (Step 3, Example 1), defense line (Step 6, Example 4), buy-and-hold (Step 5, Example 3) and confirmation origin (Step 3, Step 4, Example 2 with the thismatter dissent). Two low items remain: evidence.md section 8 omits R-012, which Step 3 cites for the Schannep retracement row; and Step 4 and the Example 2 verdict state the Hamilton origin of confirmation flatly where Step 3 now records it as contested.",
+    "findings": [
+      {
+        "severity": "low",
+        "path": "skills/dow-theory-sources/references/evidence.md",
+        "line": 196,
+        "message": "Section 8 'Rule ids cited' lists R-011 then R-013 and omits R-012, but SKILL.md Step 3 cites R-012 in the Schannep retracement row ('Schannep (`R-012`) ... 【single-source】') and evidence.md itself tags two rows with R-012. Contract item 8 requires evidence.md to list every rule id used in SKILL.md.",
+        "improvement": "Insert R-012 between R-011 and R-013 in the section 8 list."
+      },
+      {
+        "severity": "low",
+        "path": "skills/dow-theory-sources/SKILL.md",
+        "line": 147,
+        "message": "Step 3 (Dow on averages row) now records the origin of two-average confirmation as 【literature-disputed】on origin only (thismatter-dow-theory:Q10 against russell Q4 and the nelson note). Step 4 row 'Confirmation | Hamilton 1922 | first-hand; not Dow | 【literature-consensus】' and the Example 2 verdict 'but its author is Hamilton' state the origin flatly, so the three passages read differently on the same question. The registry R-032 statement says Hamilton first defined it and lists thismatter as origin-only dissent, so the skill is not wrong, but the contract's side-by-side rule means the dissent should travel with the claim wherever it is stated.",
+        "improvement": "In the Step 4 Confirmation row write 'first-hand; not Dow (origin contested only by thismatter-dow-theory:Q10, partial access)'. In the Example 2 verdict write 'its earliest first-hand author is Hamilton; one partial educator credits Dow (positions below)'."
+      },
+      {
+        "severity": "low",
+        "path": "skills/dow-theory-sources/SKILL.md",
+        "line": null,
+        "message": "Out of scope for the skill score (project lead task, carried from round 3): analysis/skill_boundary_ledger.md still has no entry for dow-theory-sources (grep for 'theory-sources' and 'glossary' returns nothing), so the DRY ownership of glossary, labels, provenance and performance evidence claimed in Boundaries is not recorded where siblings look for it.",
+        "improvement": "Add a ledger row for dow-theory-sources listing its owned sections (glossary, label definitions, provenance chain, performance evidence, defense-line negative result) and the R-ids it cites, dated 2026-11-08."
+      }
+    ]
+  },
+  "final_review": {
+    "score": 90,
+    "weights": {
+      "auto_weight": 0.35,
+      "llm_weight": 0.65
+    },
+    "improvements_required": false,
+    "improvement_items": [],
+    "findings": [
+      {
+        "severity": "low",
+        "path": "skills/dow-theory-sources/references/evidence.md",
+        "line": 196,
+        "message": "Section 8 'Rule ids cited' lists R-011 then R-013 and omits R-012, but SKILL.md Step 3 cites R-012 in the Schannep retracement row ('Schannep (`R-012`) ... 【single-source】') and evidence.md itself tags two rows with R-012. Contract item 8 requires evidence.md to list every rule id used in SKILL.md.",
+        "improvement": "Insert R-012 between R-011 and R-013 in the section 8 list.",
+        "axis": "llm"
+      },
+      {
+        "severity": "low",
+        "path": "skills/dow-theory-sources/SKILL.md",
+        "line": 147,
+        "message": "Step 3 (Dow on averages row) now records the origin of two-average confirmation as 【literature-disputed】on origin only (thismatter-dow-theory:Q10 against russell Q4 and the nelson note). Step 4 row 'Confirmation | Hamilton 1922 | first-hand; not Dow | 【literature-consensus】' and the Example 2 verdict 'but its author is Hamilton' state the origin flatly, so the three passages read differently on the same question. The registry R-032 statement says Hamilton first defined it and lists thismatter as origin-only dissent, so the skill is not wrong, but the contract's side-by-side rule means the dissent should travel with the claim wherever it is stated.",
+        "improvement": "In the Step 4 Confirmation row write 'first-hand; not Dow (origin contested only by thismatter-dow-theory:Q10, partial access)'. In the Example 2 verdict write 'its earliest first-hand author is Hamilton; one partial educator credits Dow (positions below)'.",
+        "axis": "llm"
+      },
+      {
+        "severity": "low",
+        "path": "skills/dow-theory-sources/SKILL.md",
+        "line": null,
+        "message": "Out of scope for the skill score (project lead task, carried from round 3): analysis/skill_boundary_ledger.md still has no entry for dow-theory-sources (grep for 'theory-sources' and 'glossary' returns nothing), so the DRY ownership of glossary, labels, provenance and performance evidence claimed in Boundaries is not recorded where siblings look for it.",
+        "improvement": "Add a ledger row for dow-theory-sources listing its owned sections (glossary, label definitions, provenance chain, performance evidence, defense-line negative result) and the R-ids it cites, dated 2026-11-08.",
+        "axis": "llm"
+      }
+    ]
+  },
+  "llm_prompt_file": null
+}

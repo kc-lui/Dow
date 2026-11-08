@@ -1,6 +1,6 @@
 # Evidence for dow-theory-sources
 
-Every verbatim quote and rule id used in `../SKILL.md`, grouped by Workflow step. Each quote is copied from `../../../../research/sources/<slug>.md` and carries its `(slug:Qn)` pointer; the URL is the note's recorded source. Labels follow `../../../../research/canonical_rules.md` section 0.
+Every verbatim quote and rule id used in `../SKILL.md`, plus context quotes from the same registry rows, grouped by Workflow step. Pointers that SKILL.md cites without quoting (Chinese text or nested quotation marks) appear as paraphrase rows. Each quote is copied from `../../../../research/sources/<slug>.md` and carries its `(slug:Qn)` pointer; the URL is the note's recorded source. Labels follow `../../../../research/canonical_rules.md` section 0.
 
 ## Contents
 
@@ -104,6 +104,8 @@ Taiwan educator figure 1/3 to 1/2 (R-009) is in stockfeel-dow-theory:Q6 (Chinese
 | "The average duration of seven major bull swings is twenty-five months; while the average duration of seven major bear swings is fifteen months." (hamilton-1922-stock-market-barometer:Q13) | Hamilton, 1900 to 1923, R-004 【single-source】 |
 | "The primary movement is the broad basic trend generally known as a bull or bear market extending over periods that have varied from less than a year to several years." (rhea-1932-the-dow-theory:Q4) | Rhea via Wiley |
 | "Primary movements represent the broad underlying trend of the market and can last from a few months to many years." (stockcharts-chartschool-dow-theory:Q1) | educator |
+| "primary movement or major trend may last from less than a year to several years" (wikipedia-en-dow-theory:Q2) | encyclopedia, same position as Rhea, R-002 |
+| stockfeel-dow-theory:Q4, Chinese text paraphrased: the primary trend usually lasts one year or more | Taiwan educator, R-002, not quoted |
 | "It is impossible to tell in advance the length of any primary movement, but the further it goes, the greater the reaction when it comes, hence the more certainty of being able to trade successfully on that reaction." (hamilton-1922-stock-market-barometer:Q12) | Dow, Jul 20, 1901, R-005 【literature-consensus】 |
 
 ### Lines (R-022 to R-025)
@@ -129,6 +131,7 @@ Taiwan educator figure 1/3 to 1/2 (R-009) is in stockfeel-dow-theory:Q6 (Chinese
 | "The movement of one price average must be confirmed by the other before reliable inferences may be drawn." (rhea-1932-the-dow-theory:Q6) | R-032 | 【literature-consensus】 |
 | "But Hamilton also presented his own views on Dow Theory, and it was Hamilton who first defined the confirmation principle of the Averages." (russell-history-of-the-dow-theory:Q4) | origin of R-032 | 【literature-consensus】 |
 | "He should observe the movement of the general market as indicated by the averages published daily, as this shows the market more clearly than it is shown by any one stock." (nelson-1903-abc-of-stock-speculation:Q5) | Dow has no two-average rule | 【literature-consensus】 |
+| "Charles Dow introduced another concept central to technical analysis — confirmation." (thismatter-dow-theory:Q10) | educator credits Dow, contradicted by Russell Q4 and the nelson note; partial access | origin dispute noted in R-032 |
 | "First, trends must be confirmed by both the industrials and the transportations, but the confirmation need not occur on the same day." (brown-goetzmann-kumar-1998:Q5) | R-033, R-034 | 【literature-consensus】 |
 | "It uses three indices (it includes the S&P), instead of just two, whereas it requires just two indices to confirm." (thedowtheory-schannep-vs-classical:Q2) | R-035 | 【single-source】 |
 | "The levels at which I consider that a market attains bull- or bear-market status are +19% and –16% as mentioned previously." (aaii-dow-theory-21st-century:Q8) | R-021 | 【single-source】 |
@@ -151,8 +154,11 @@ Phase names (R-043, R-044) are in brown-goetzmann-kumar-1998:Q10 and Q11; they c
 
 ## 6. Step 5: performance evidence (R-062) 【literature-disputed】
 
+Windows differ: Cowles scores December 1903 to December 1929 (cowles-1933-can-forecasters-forecast:Q11); Brown, Goetzmann and Kumar score 1902 to 1929 (brown-goetzmann-kumar-1998:Q1). Both score Hamilton's editorials, not mechanical rules.
+
 | Quote | Pointer | Reliability |
 |---|---|---|
+| "We find that Hamilton’s timing strategies actually yield high Sharpe ratios and positive alphas for the period 1902 to 1929." (brown-goetzmann-kumar-1998:Q1) | BGK abstract, sample window, R-062 | full text |
 | "From December 1903 to December 1929, Hamilton, through the application of his forecasts to the stocks composing the Dow Jones industrial averages, would have earned a return, including dividend and interest income, of 12 per cent per annum." (cowles-1933-can-forecasters-forecast:Q11) | Cowles p.315 | full text |
 | "In the same period the stocks composing the industrial averages showed a return of 15.5 per cent per annum." (cowles-1933-can-forecasters-forecast:Q12) | Cowles p.315 | full text |
 | "Hamilton therefore failed by an appreciable margin to gain as much through his forecasting as he would have made by a continuous outright investment in the stocks composing the industrial averages." (cowles-1933-can-forecasters-forecast:Q13) | Cowles p.315 | full text |
